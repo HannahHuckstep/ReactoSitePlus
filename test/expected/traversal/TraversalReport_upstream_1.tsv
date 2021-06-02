@@ -1,0 +1,18 @@
+Order: 0
+All things Downstream of 1, gene name:AGPAT1, display name: AGPAT1 (location: cytosol)(node id: 1) in experiment 0
+The number of nodes found were: 10
+The number of phosphorylation nodes: 0
+The number of phosphorylation nodes with mapped data: 0 (0.0%)
+The number of proteoform nodes: 3
+The number of proteoform nodes with mapped data: 0(0.0%)
+The number of complex nodes: 1
+The number of complex nodes with mapped data: 0(0.0%)
+The number of UniProt id nodes: 3
+The number of UniProt id nodes with mapped data: 0(0.0%)
+The number of kinase nodes: 0
+The number of kinase nodes with mapped data: 0(0.0%)
+The number of biochemical reaction nodes: 1
+The number of transcription factor nodes: 1
+The number of cell surface receptor nodes: 0
+The number of pathways traversed: 1
+

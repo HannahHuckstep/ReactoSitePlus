@@ -1,0 +1,54 @@
+Order: 1
+All things Downstream of P06213, gene name:INSR, display name: phospho-p-2-INSR(28-758) (location: plasma membrane)(node id: 3) in experiment 0
+The number of nodes found were: 12
+The number of phosphorylation nodes: 2
+The number of phosphorylation nodes with mapped data: 2 (100.0%)
+The number of proteoform nodes: 1
+The number of proteoform nodes with mapped data: 1(100.0%)
+The number of complex nodes: 4
+The number of complex nodes with mapped data: 4(100.0%)
+The number of UniProt id nodes: 1
+The number of UniProt id nodes with mapped data: 1(100.0%)
+The number of kinase nodes: 1
+The number of kinase nodes with mapped data: 1(100.0%)
+The number of biochemical reaction nodes: 2
+The number of transcription factor nodes: 0
+The number of cell surface receptor nodes: 0
+The number of pathways traversed: 1
+
+Order: 2
+All things Downstream of P06213, gene name:INSR, display name: INSR(763-1382) (location: plasma membrane)(node id: 13) in experiment 0
+The number of nodes found were: 9
+The number of phosphorylation nodes: 0
+The number of phosphorylation nodes with mapped data: 0 (0.0%)
+The number of proteoform nodes: 1
+The number of proteoform nodes with mapped data: 1(100.0%)
+The number of complex nodes: 3
+The number of complex nodes with mapped data: 3(100.0%)
+The number of UniProt id nodes: 1
+The number of UniProt id nodes with mapped data: 1(100.0%)
+The number of kinase nodes: 1
+The number of kinase nodes with mapped data: 1(100.0%)
+The number of biochemical reaction nodes: 2
+The number of transcription factor nodes: 0
+The number of cell surface receptor nodes: 0
+The number of pathways traversed: 1
+
+Order: 3
+All things Downstream of P06213, gene name:INSR, display name: phospho-p-3-INSR(400-1382) (location: plasma membrane)(node id: 17) in experiment 0
+The number of nodes found were: 7
+The number of phosphorylation nodes: 3
+The number of phosphorylation nodes with mapped data: 3 (100.0%)
+The number of proteoform nodes: 1
+The number of proteoform nodes with mapped data: 1(100.0%)
+The number of complex nodes: 2
+The number of complex nodes with mapped data: 2(100.0%)
+The number of UniProt id nodes: 1
+The number of UniProt id nodes with mapped data: 1(100.0%)
+The number of kinase nodes: 1
+The number of kinase nodes with mapped data: 1(100.0%)
+The number of biochemical reaction nodes: 0
+The number of transcription factor nodes: 0
+The number of cell surface receptor nodes: 0
+The number of pathways traversed: 1
+

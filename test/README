@@ -1,0 +1,18 @@
+General test DB guide
+
+The DB has 4 UID's
+Q9Y6L4 - Secondary and Human, updated to Q92838
+U3BNT9 - Secondary and not Human
+P06213 - Human and current
+A5A626 - Deleted or not human
+Q9UH92-2 - Human and current
+Q99943 - Human and current
+Q9NP71 - Human and current
+
+P06213 has 6 modifications:
+S:400 
+T:407 - mismatch, should be S
+Y:1189
+Y:1190
+Y:1360 - offset, exact match is 1 off (at 1361)
+Y:931 - offset, exact match is -10 away, mis match (S) is -2 away, matches in isomer

@@ -1,0 +1,389 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:bp="http://www.biopax.org/release/biopax-level3.owl#"
+    xmlns="http://www.phosphosite.org/phosphosite.owl#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+  xml:base="http://www.phosphosite.org/phosphosite.owl#">
+  <owl:Ontology rdf:about="#">
+    <owl:imports rdf:resource="http://www.biopax.org/release/biopax-level3.owl"/>
+  </owl:Ontology>
+    <bp:Catalysis rdf:ID="Catalysis_43850_457">
+    <bp:dataSource>
+      <bp:Provenance rdf:ID="Provenance_psp">
+        <bp:xref>
+          <bp:PublicationXref rdf:ID="pmid_15174125">
+            <bp:title>PhosphoSitePlus: a comprehensive resource for investigating the structure and function of experimentally determined post-translational modifications in man and mouse.</bp:title>
+            <bp:year>2012</bp:year>
+            <bp:id>22135298</bp:id>
+            <bp:db>pubmed</bp:db>
+          </bp:PublicationXref>
+        </bp:xref>
+        <bp:displayName>PhosphoSitePlus</bp:displayName>
+      </bp:Provenance>
+    </bp:dataSource>
+    <bp:controller>
+      <bp:Protein rdf:ID="Protein_457">
+        <bp:displayName>Y</bp:displayName>
+        <bp:name>Y (human)</bp:name>
+        <bp:entityReference>
+          <bp:ProteinReference rdf:ID="po_457">
+            <bp:xref>
+              <bp:UnificationXref rdf:ID="xref_457">
+                <bp:db>UniProtKB</bp:db>
+                <bp:id>Q96HS1-2</bp:id>
+              </bp:UnificationXref>
+            </bp:xref>
+            <bp:organism>
+              <bp:BioSource rdf:ID="organism_human">
+                <bp:displayName>human</bp:displayName>
+                <bp:xref>
+                  <bp:UnificationXref rdf:ID="taxonomy_9606">
+                    <bp:id>9606</bp:id>
+                    <bp:db>taxonomy</bp:db>
+                  </bp:UnificationXref>
+                </bp:xref>
+              </bp:BioSource>
+            </bp:organism>
+            <bp:displayName>Y</bp:displayName>
+          </bp:ProteinReference>
+        </bp:entityReference>
+      </bp:Protein>
+    </bp:controller>
+    <bp:controlled>
+      <bp:BiochemicalReaction rdf:ID="BiochemicalReaction_43850">
+        <bp:conversionDirection>LEFT-TO-RIGHT</bp:conversionDirection>
+        <bp:evidence>
+          <bp:Evidence rdf:ID="evidence_4143_EvidenceCodeVocabulary_0421">
+            <bp:xref>
+              <bp:PublicationXref rdf:ID="pmid_15084291">
+                <bp:url>http://www.phosphosite.org/curatedInfoAction.do?record=4143</bp:url>
+                <bp:title>Atypical PKC phosphorylates PAR-1 kinases to regulate localization and activity.</bp:title>
+                <bp:year>2004</bp:year>
+                <bp:id>15084291</bp:id>
+                <bp:db>pubmed</bp:db>
+              </bp:PublicationXref>
+            </bp:xref>
+            <bp:evidenceCode>
+              <bp:EvidenceCodeVocabulary rdf:ID="EvidenceCodeVocabulary_0421">
+                <bp:xref>
+                  <bp:UnificationXref rdf:ID="method_0421">
+                    <bp:id>MI:0421</bp:id>
+                    <bp:db>PSI-MI</bp:db>
+                  </bp:UnificationXref>
+                </bp:xref>
+                <bp:term>identification by antibody</bp:term>
+              </bp:EvidenceCodeVocabulary>
+            </bp:evidenceCode>
+          </bp:Evidence>
+        </bp:evidence>
+        <bp:evidence>
+          <bp:Evidence rdf:ID="evidence_21390221_null">
+            <bp:xref>
+              <bp:PublicationXref rdf:ID="pmid_21983960">
+                <bp:url>http://www.phosphosite.org/curatedInfoAction.do?record=21390221</bp:url>
+                <bp:title>Proteomic and phosphoproteomic comparison of human ES and iPS cells.</bp:title>
+                <bp:year>2011</bp:year>
+                <bp:id>21983960</bp:id>
+                <bp:db>pubmed</bp:db>
+              </bp:PublicationXref>
+            </bp:xref>
+          </bp:Evidence>
+        </bp:evidence>
+        <bp:evidence>
+          <bp:Evidence rdf:ID="evidence_27303810_EvidenceCodeVocabulary_0427">
+            <bp:xref>
+              <bp:PublicationXref rdf:ID="recid_27303810">
+                <bp:url>http://www.phosphosite.org/curatedInfoAction.do?record=27303810</bp:url>
+                <bp:title>&lt;b&gt;CST Curation Set:&lt;/b&gt; 13828; &lt;b&gt;Year:&lt;/b&gt; 2012; &lt;b&gt;Biosample/Treatment:&lt;/b&gt; cell line, Jurkat/calyculin_A &amp; pervanadate; &lt;b&gt;Disease:&lt;/b&gt; T cell leukemia; &lt;b&gt;SILAC:&lt;/b&gt; -; &lt;b&gt;Specificities of Antibodies Used to Purify Peptides prior to LCMS:&lt;/b&gt; (K/R)XpSX(K/R)</bp:title>
+                <bp:year>2012</bp:year>
+              </bp:PublicationXref>
+            </bp:xref>
+            <bp:evidenceCode>
+              <bp:EvidenceCodeVocabulary rdf:ID="EvidenceCodeVocabulary_0427">
+                <bp:xref>
+                  <bp:UnificationXref rdf:ID="method_0427">
+                    <bp:id>MI:0427</bp:id>
+                    <bp:db>PSI-MI</bp:db>
+                  </bp:UnificationXref>
+                </bp:xref>
+                <bp:term>Identification by mass spectrometry</bp:term>
+              </bp:EvidenceCodeVocabulary>
+            </bp:evidenceCode>
+          </bp:Evidence>
+        </bp:evidence>
+        <bp:left>
+          <bp:Protein rdf:ID="Protein_721">
+            <bp:displayName>A</bp:displayName>
+            <bp:name>A (human)</bp:name>
+            <bp:entityReference>
+              <bp:ProteinReference rdf:ID="po_721">
+                <bp:xref>
+                  <bp:UnificationXref rdf:ID="xref_721">
+                    <bp:db>UniProtKB</bp:db>
+                    <bp:id>Q15382</bp:id>
+                  </bp:UnificationXref>
+                </bp:xref>
+                <bp:organism rdf:resource="#organism_human"/>
+                <bp:displayName>A</bp:displayName>
+              </bp:ProteinReference>
+            </bp:entityReference>
+          </bp:Protein>
+        </bp:left>
+        <bp:right>
+          <bp:Protein rdf:ID="ModifiedProtein_43850">
+            <bp:feature>
+              <bp:ModificationFeature rdf:ID="ModificationFeature_S4p">
+                <bp:featureLocation>
+                  <bp:SequenceSite rdf:ID="SequenceSite_4">
+                    <bp:sequencePosition>4</bp:sequencePosition>
+                    <bp:positionStatus>EQUAL</bp:positionStatus>
+                  </bp:SequenceSite>
+                </bp:featureLocation>
+                <bp:modificationType>
+                  <bp:SequenceModificationVocabulary rdf:ID="SequenceModificationVocabulary_S-p">
+                    <bp:xref>
+                      <bp:UnificationXref rdf:ID="UnificationXref_S-p">
+                        <bp:id>MOD:00047</bp:id>
+                        <bp:db>PSI-MI</bp:db>
+                      </bp:UnificationXref>
+                    </bp:xref>
+                    <bp:term>O-phospho-L-serine</bp:term>
+                  </bp:SequenceModificationVocabulary>
+                </bp:modificationType>
+              </bp:ModificationFeature>
+            </bp:feature>
+            <bp:displayName>A</bp:displayName>
+            <bp:name>A (human)</bp:name>
+            <bp:entityReference rdf:resource="#po_721"/>
+          </bp:Protein>
+        </bp:right>
+        <bp:evidence>
+          <bp:Evidence rdf:ID="evidence_34666515_EvidenceCodeVocabulary_0427">
+            <bp:xref>
+              <bp:PublicationXref rdf:ID="pmid_24719451">
+                <bp:url>http://www.phosphosite.org/curatedInfoAction.do?record=34666515</bp:url>
+                <bp:title>Ischemia in tumors induces early and sustained phosphorylation changes in stress kinase pathways but does not affect global protein levels.</bp:title>
+                <bp:year>2014</bp:year>
+                <bp:id>24719451</bp:id>
+                <bp:db>pubmed</bp:db>
+              </bp:PublicationXref>
+            </bp:xref>
+            <bp:evidenceCode rdf:resource="#EvidenceCodeVocabulary_0427"/>
+          </bp:Evidence>
+        </bp:evidence>
+        <bp:evidence>
+          <bp:Evidence rdf:ID="evidence_27423500_null">
+            <bp:xref>
+              <bp:PublicationXref rdf:ID="pmid_23312004">
+                <bp:url>http://www.phosphosite.org/curatedInfoAction.do?record=27423500</bp:url>
+                <bp:title>Identification of missing proteins in the neXtProt database and unregistered phosphopeptides in the PhosphoSitePlus database as part of the Chromosome-centric Human Proteome Project.</bp:title>
+                <bp:year>2013</bp:year>
+                <bp:id>23312004</bp:id>
+                <bp:db>pubmed</bp:db>
+              </bp:PublicationXref>
+            </bp:xref>
+          </bp:Evidence>
+        </bp:evidence>
+        <bp:dataSource rdf:resource="#Provenance_psp"/>
+      </bp:BiochemicalReaction>
+    </bp:controlled>
+  </bp:Catalysis>
+  
+  <bp:Catalysis rdf:ID="Catalysis_43850_458">
+    <bp:dataSource rdf:resource="#Provenance_psp"/>
+    <bp:controller>
+      <bp:Protein rdf:ID="Protein_458">
+        <bp:displayName>Z</bp:displayName>
+        <bp:name>Z (human)</bp:name>
+        <bp:entityReference>
+          <bp:ProteinReference rdf:ID="po_458">
+            <bp:xref>
+              <bp:UnificationXref rdf:ID="xref_458">
+                <bp:db>UniProtKB</bp:db>
+                <bp:id>Q04656</bp:id>
+              </bp:UnificationXref>
+            </bp:xref>
+            <bp:organism rdf:resource="#organism_human"/>
+            <bp:displayName>Z</bp:displayName>
+          </bp:ProteinReference>
+        </bp:entityReference>
+      </bp:Protein>
+    </bp:controller>
+    <bp:controlled>
+      <bp:BiochemicalReaction rdf:ID="BiochemicalReaction_43851">
+        <bp:conversionDirection>LEFT-TO-RIGHT</bp:conversionDirection>
+        <bp:evidence>
+          <bp:Evidence rdf:ID="evidence_5930026_null">
+            <bp:xref>
+              <bp:PublicationXref rdf:ID="pmid_19074150">
+                <bp:url>http://www.phosphosite.org/curatedInfoAction.do?record=5930025</bp:url>
+                <bp:title>Phosphorylation of the consensus sites of protein kinase A on alpha1D L-type calcium channel.</bp:title>
+                <bp:year>2009</bp:year>
+                <bp:id>19074150</bp:id>
+                <bp:db>pubmed</bp:db>
+              </bp:PublicationXref>
+            </bp:xref>
+          </bp:Evidence>
+        </bp:evidence>
+        <bp:left rdf:resource="#Protein_721"/>
+        <bp:right>
+          <bp:Protein rdf:ID="ModifiedProtein_43851">
+            <bp:feature>
+              <bp:ModificationFeature rdf:ID="ModificationFeature_S2p">
+                <bp:featureLocation>
+                  <bp:SequenceSite rdf:ID="SequenceSite_2">
+                    <bp:sequencePosition>2</bp:sequencePosition>
+                    <bp:positionStatus>EQUAL</bp:positionStatus>
+                  </bp:SequenceSite>
+                </bp:featureLocation>
+                <bp:modificationType rdf:resource="#SequenceModificationVocabulary_S-p"/>
+              </bp:ModificationFeature>
+            </bp:feature>
+            <bp:displayName>A</bp:displayName>
+            <bp:name>A (human)</bp:name>
+            <bp:entityReference rdf:resource="#po_721"/>
+          </bp:Protein>
+        </bp:right>
+        <bp:dataSource rdf:resource="#Provenance_psp"/>
+      </bp:BiochemicalReaction>
+    </bp:controlled>
+  </bp:Catalysis>
+  
+    <bp:Catalysis rdf:ID="Catalysis_43850_459">
+    <bp:dataSource rdf:resource="#Provenance_psp"/>
+    <bp:controller>
+      <bp:Protein rdf:ID="Protein_459">
+        <bp:displayName>X</bp:displayName>
+        <bp:name>X (human)</bp:name>
+        <bp:entityReference>
+          <bp:ProteinReference rdf:ID="po_459">
+            <bp:xref>
+              <bp:UnificationXref rdf:ID="xref_459">
+                <bp:db>UniProtKB</bp:db>
+                <bp:id>Q14582</bp:id>
+              </bp:UnificationXref>
+            </bp:xref>
+            <bp:organism rdf:resource="#organism_human"/>
+            <bp:displayName>X</bp:displayName>
+          </bp:ProteinReference>
+        </bp:entityReference>
+      </bp:Protein>
+    </bp:controller>
+    <bp:controlled>
+      <bp:BiochemicalReaction rdf:ID="BiochemicalReaction_43852">
+        <bp:conversionDirection>LEFT-TO-RIGHT</bp:conversionDirection>
+        <bp:evidence>
+          <bp:Evidence rdf:ID="evidence_5930025_null">
+            <bp:xref>
+              <bp:PublicationXref rdf:ID="pmid_19074151">
+                <bp:url>http://www.phosphosite.org/curatedInfoAction.do?record=5930025</bp:url>
+                <bp:title>Phosphorylation of the consensus sites of protein kinase A on alpha1D L-type calcium channel.</bp:title>
+                <bp:year>2009</bp:year>
+                <bp:id>19074150</bp:id>
+                <bp:db>pubmed</bp:db>
+              </bp:PublicationXref>
+            </bp:xref>
+          </bp:Evidence>
+        </bp:evidence>
+        <bp:left rdf:resource="#Protein_721"/>
+        <bp:right>
+          <bp:Protein rdf:ID="ModifiedProtein_43852">
+            <bp:feature>
+              <bp:ModificationFeature rdf:ID="ModificationFeature_S1p">
+                <bp:featureLocation>
+                  <bp:SequenceSite rdf:ID="SequenceSite_1">
+                    <bp:sequencePosition>1</bp:sequencePosition>
+                    <bp:positionStatus>EQUAL</bp:positionStatus>
+                  </bp:SequenceSite>
+                </bp:featureLocation>
+                <bp:modificationType rdf:resource="#SequenceModificationVocabulary_S-p"/>
+              </bp:ModificationFeature>
+            </bp:feature>
+            <bp:displayName>A</bp:displayName>
+            <bp:name>A (human)</bp:name>
+            <bp:entityReference rdf:resource="#po_721"/>
+          </bp:Protein>
+        </bp:right>
+        <bp:dataSource rdf:resource="#Provenance_psp"/>
+      </bp:BiochemicalReaction>
+    </bp:controlled>
+  </bp:Catalysis>
+  
+  
+  <bp:Catalysis rdf:ID="Catalysis_7989000_660">
+    <bp:dataSource rdf:resource="#Provenance_psp"/>
+    <bp:controller rdf:resource="#Protein_459"/>
+    <bp:controlled>
+      <bp:BiochemicalReaction rdf:ID="BiochemicalReaction_7989000">
+        <bp:evidence>
+          <bp:Evidence rdf:ID="evidence_7910507_EvidenceCodeVocabulary_0421">
+            <bp:xref>
+              <bp:PublicationXref rdf:ID="pmid_19447520">
+                <bp:url>http://www.phosphosite.org/curatedInfoAction.do?record=7910507</bp:url>
+                <bp:title>Protein kinase SGK1 enhances MEK/ERK complex formation through the phosphorylation of ERK2: implication for the positive regulatory role of SGK1 on the ERK function during liver regeneration.</bp:title>
+                <bp:year>2009</bp:year>
+                <bp:id>19447520</bp:id>
+                <bp:db>pubmed</bp:db>
+              </bp:PublicationXref>
+            </bp:xref>
+            <bp:evidenceCode rdf:resource="#EvidenceCodeVocabulary_0421"/>
+          </bp:Evidence>
+        </bp:evidence>
+        <bp:evidence>
+          <bp:Evidence rdf:ID="evidence_7910507_EvidenceCodeVocabulary_0074">
+            <bp:xref rdf:resource="#pmid_19447520"/>
+            <bp:evidenceCode rdf:resource="#EvidenceCodeVocabulary_0074"/>
+          </bp:Evidence>
+        </bp:evidence>
+        <bp:evidence>
+          <bp:Evidence rdf:ID="evidence_7910507_EvidenceCodeVocabulary_0113">
+            <bp:xref rdf:resource="#pmid_19447520"/>
+            <bp:evidenceCode rdf:resource="#EvidenceCodeVocabulary_0113"/>
+          </bp:Evidence>
+        </bp:evidence>
+        <bp:conversionDirection>LEFT-TO-RIGHT</bp:conversionDirection>
+        <bp:dataSource rdf:resource="#Provenance_psp"/>
+        <bp:left>
+          <bp:Protein rdf:ID="Protein_10694">
+            <bp:displayName>B</bp:displayName>
+            <bp:name>B (human)</bp:name>
+            <bp:entityReference>
+              <bp:ProteinReference rdf:ID="po_10694">
+                <bp:xref>
+                  <bp:UnificationXref rdf:ID="xref_10694">
+                    <bp:db>UniProtKB</bp:db>
+                    <bp:id>Q14498</bp:id>
+                  </bp:UnificationXref>
+                </bp:xref>
+                <bp:organism rdf:resource="#organism_human"/>
+                <bp:displayName>B</bp:displayName>
+              </bp:ProteinReference>
+            </bp:entityReference>
+          </bp:Protein>
+        </bp:left>
+         <bp:right>
+          <bp:Protein rdf:ID="ModifiedProtein_3196191">
+          <bp:feature>
+              <bp:ModificationFeature rdf:ID="ModificationFeature_S5p">
+                <bp:featureLocation>
+                  <bp:SequenceSite rdf:ID="SequenceSite_5">
+                    <bp:sequencePosition>5</bp:sequencePosition>
+                    <bp:positionStatus>EQUAL</bp:positionStatus>
+                  </bp:SequenceSite>
+                </bp:featureLocation>
+                <bp:modificationType rdf:resource="#SequenceModificationVocabulary_S-p"/>
+              </bp:ModificationFeature>
+            </bp:feature>            
+            <bp:displayName>B</bp:displayName>
+            <bp:name>B (human)</bp:name>
+            <bp:entityReference rdf:resource="#po_10694"/>
+          </bp:Protein>
+        </bp:right>
+      </bp:BiochemicalReaction>
+    </bp:controlled>
+  </bp:Catalysis>
+
+</rdf:RDF>
