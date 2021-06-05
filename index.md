@@ -117,5 +117,44 @@ In order to map your data you will need an input file with the following 4 colum
     1. e.g., the column that holds:  stimulated, unstimulated, time_point_1
 
 
+## Analysing Mapped Network 
+
+Now that the network has the data mapped to it, there are a number of ways to analyse the mapped network. 
+* Traversal analysis 
+* Neighbourhood analysis 
+* Find the shortest path between two proteins 
+* Minimal Connection Network
+* Manual investigation via cytosscape or Neo4j
+
+### Traversal Analysis 
+
+
+### Neighbourhood Analysis 
+
+### Shortest Path 
+
+### Minimal Connection Network 
+
+### Visualization 
+#### Writing the mapped database to a SIF 
+After the database is mapped to you can write it to a Simple Interaction Format (SIF) file to import into cytoscape along with an attribute file. The SIF file will be names SIF.sif, which can be renamed but must keep the .sif extension. An example of a SIF file looks like: 
+
+```
+21	INPUT	20
+23	PHOSPHORYLATION	21
+20	OUTPUT	24
+```
+Which we would read as the node with the id ```21``` is an ```INPUT``` to the reaction node with the id ```20```, or the node with the id ```23``` is a ```PHOSPHORYLATION``` on the node ```21```.
+
+The attribute file will contain all attributes associated with each node. An example of an attribute file looks like: 
+
+```
+Node_ID Database_ID     Display_Name    Type    Database_Link   Location        Status  Kinase  Transcription_Factor    Cell_Surface_Receptor   UniProt_Gene_Name       Integrated      ABUNDANCE_SCORE
+21      Protein2090     p-S568-MLXIPL   Protein  http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-163687.1        nucleoplasm                     TRANSCRIPTION_FACTOR            MLXIPL
+24      SmallMolecule848        Pi      SmallMolecule    http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-ALL-113550.4        nucleoplasm                 20      BiochemicalReaction1310 [Dephosphorylation of pChREBP (Ser 568) by PP2A]        BiochemicalReaction      http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-164056.2
+23      Protein2090_p-S_568     p-S_568 p_S             568                  
+```
+
+Where the attributes are associated with the node ids found in the SIF file. The first line contains all of the attributes 
 
 
