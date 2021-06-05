@@ -2,7 +2,22 @@
 
 ## Introduction 
 
-PhlashyNAMe is a command line tool for downstream analysis Proteomics and Phosphoproteomics data. The tool can be run on linux, Mac and Windows operating systems. 
+PhlashyNAMe is a command line tool for downstream analysis Proteomics and Phosphoproteomics data. The tool can be run on linux, Mac and Windows operating systems. What makes PhlashyNAMe unique is it's ability to use phospho-peptide level information to analyse your data. Reactome annotates proteins in specific phosphorylation states as separate entities, therefore these phosphoproteins can take part in different signalling cascades depending on their phosphorylation state. Proteins in these differing modification states are hereby referred to as proteoforms. Taking advantage of this structure, PhlashyNAMe takes an input file of phosphopeptides and maps the phosphorylations onto proteins and complexes according to a set of guidelines explained in detail in the figure below. It works by assigning a confidence score and an abundance score to each mapped protein and complex. 
+#### Confidence Score 
+This confidence score summarises support for a given phosphorylation state of a protein over its other phosphorylation states based on observations from the data. 
+
+![Screen Shot 2021-06-05 at 1 31 58 pm](https://user-images.githubusercontent.com/9949832/120878866-98292680-c602-11eb-9e33-aaf8e3549ee1.png)
+
+In Reactome, each modified protein is treated as a separate entity to the unmodified protein. In this document these entities are referred to as proteoforms, as they are different versions of the same protein and participate in different parts of the network accordingly. Proteoforms are highlighted in green throughout this figure. Across all proteoforms (green), all recorded phosphorylations are aggregated into one group called Points of Interest (orange) as shown in above. The phosphorylations recorded in the network in this example (PA,PB, and PC) are shown in purple while, phosphorylations found in the data (and not in the network) are shown in red. 
+Looking at the rules developed to score each proteoform, we first score each peptide and take the average of the peptide scores to get the proteoform Confidence score. In rule 1 of the peptide score, a match means at the amino acid in the proteoform, and the peptide have the same status (both phosphorylated or both unphosphorylated). We give a score of 0.5 for a mismatch because that peptide supports the existence of that proteoform, but we know that peptide contains a P.O.I. and will support another proteoform better. Next, looking at Rule 2, we take the average of all possible matches. In Rule 3, we multiply by 0.9 to reflect that the database takes precedent over the data. However, we also reduce the weight of the score to reflect the extra unknown phosphorylation. Finally, in Rule 4, because a peptide mapping perfectly to a modified proteoform is uncommon and of interest we multiply the score by 1.5 to highlight the match. However, we do not highlight this if the proteoform is unmodified as perfect matches would be unmodified peptides (which mostly occur from unspecific binding). 
+
+
+#### Abundance Score 
+Concurrently but separately, abundances (e.g., intensity, SILAC ratio, p-value, log fold change) are mapped onto all proteins and complexes across the network. The process of computing this score is illustrated in the figure below. The default abundance score mapping takes the abundance from the peptide with the highest confidence score (if there are multiple peptides with the same confidence score the average of the abundances are taken). The user can also choose to compute the mean or median abundance for each phosphopeptide mapped to a protein. 
+
+![Screen Shot 2021-06-05 at 1 52 36 pm](https://user-images.githubusercontent.com/9949832/120879240-5b126380-c605-11eb-8d3f-6b691f454cfd.png)
+
+When the confidence score is mapped, the abundance score is mapped simultaneously, although the scores remain separate. The user has 4 options for mapping the abundance score as described above. 
 
 ## Dependencies 
 * Java 7
@@ -20,7 +35,7 @@ git clone https://github.com/HannahHuckstep/Db_Compare.git
 2. If you do not have the required depndencies the following `conda` command will create an environment called `PhlashyNAMe` with all the dependencies installed. 
 
 ```
-conda create --name DbCompareConda \
+conda create --name PhlashyNAMe \
   --channel conda-forge \
   --channel bioconda \
   r=3.6 \
@@ -54,7 +69,7 @@ The first 2 arguments are named -h (or --help) to access the above again (This w
 So if you would like to create a database you would put the `CreateDB` option after the -m when performing the command. However, this function requires a few parametes to be specified which are shown in the '\[\]' 
 
 For this option you will need to specify:
-* the name of the **I**nput **O**wl **F**ile \[-iof\] of [Reactome](https://reactome.org/download/current/biopax.zip) that you would like to build. 
+* the name of the **i**nput **O**WL **f**ile \[-iof\] of [Reactome](https://reactome.org/download/current/biopax.zip) that you would like to build. 
 * the **o**ut***p***ut directory where you'd like your graph to reside \[-op\]
 * optionally you can specify if you'd like your database to be **u**pdated \[-u\] which can only be set to 'T' (true) or 'F' (false). (updating the database will update secondary UniProt accessions (reffered to here as UniProt ID's) to current UniProt ID's, it will also annotate any deleted or non-human UniProt ID's as deleted) 
 * you must also specify which **s**pecies of database you'd like to create \[-s\], which can be set to Human with 'h', 'human', '9606', or Mouse 'm', 'mouse', '10090'
@@ -82,6 +97,7 @@ Which needs the following parameters specified:
 * the output directory for the mapping report \[-op\]
 * the file of data you would like to map onto the database \[-idf\]
 * The mapping option you'd prefer. There are 5 options 'HighestSupport', 'Max', 'Mean', 'Median', and 'Extreme'
+    * Each option is explained above in the abundance score section. The default option is 'HighestSupport'.  
 
 
 
