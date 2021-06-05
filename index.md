@@ -157,6 +157,7 @@ Node_ID | Database_ID | Display_Name | Type | Database_Link | Location | Status 
 
 
 Where the attributes are associated with the node ids found in the SIF file. The first line contains all of the attributes that are found in that database.
+
 Attribute name | Description
 ---------------|-----------
 Node_ID | The unique node number used to link nodes to attributes in cytoscape
