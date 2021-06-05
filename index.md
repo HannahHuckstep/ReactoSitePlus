@@ -148,7 +148,7 @@ Which we would read as the node with the id ```21``` is an ```INPUT``` to the re
 
 The attribute file will contain all attributes associated with each node. An example of an attribute file looks like: 
 
-Node_ID | Database_ID | Display_Name | Type | Database_Link | Location | Status | Kinase | Transcription_Factor | Cell_Surface_Receptor | UniProt_Gene_Name | Integrated | ABUNDANCE_SCORE_wt | SUPPORT_SCORE_wt | ABUNDANCE_SCORE_ctrl | SUPPORT_SCORE_ctrl
+Node_ID | Database_ID | Display_Name | Type | Database_Link | Location | Status | Kinase | Transcription_Factor | Cell_Surface_Receptor | UniProt_Gene_Name | Integrated | ABUNDANCE_SCORE_wt | SUPPORT_SCORE_wt | ABUNDANCE_SCORE_stim | SUPPORT_SCORE_stim
 --------|-------------|--------------|------|---------------|----------|--------|--------|----------------------|-----------------------|-------------------|------------|--------------------|------------------|----------------------|-------------------
 21 | Protein2090 | p-S568-MLXIPL | Protein | http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-163687.1 | nucleoplasm | | | TRANSCRIPTION_FACTOR | | MLXIPL | | 3.2 | 0.9 | -1.5 | 0.5
 24 | SmallMolecule848 | Pi | SmallMolecule | http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-ALL-113550.4 | nucleoplasm | | | | | | | | | | 
@@ -156,6 +156,24 @@ Node_ID | Database_ID | Display_Name | Type | Database_Link | Location | Status 
 23 | Protein2090_p-S_568 | p-S_568 | p_S | | 568 | | | | | | | | | | | 
 
 
-Where the attributes are associated with the node ids found in the SIF file. The first line contains all of the attributes 
+Where the attributes are associated with the node ids found in the SIF file. The first line contains all of the attributes that are found in that database.
+Attribute name | Description
+---------------|-----------
+Node_ID | The unique node number used to link nodes to attributes in cytoscape
+Database_ID | The unique node ID given by Reactome 
+Display_Name | The name of the node 
+Type | The type of node 
+Database_Link | The link to the database that has more information on the node. Can link back to Reactome, PhosphoSitePlus or UniProt
+Location | The cellular location of the node 
+Status | The status of UniProt nodes, can be nothing (if the database was not updated), 'Current', 'Updated', or 'Deleted?' - the question mark indicates further review is needed. The UniProt Id could be old and outdated or not consistent with the species in the database.  
+Kinase | If the node is a Kinase this column with have the values 'KINASE' otherwise it will be left blank 
+Transcription_Factor | If the node is a Transcription Factor this column with have the values 'TRANSCRIPTION_FACTOR' otherwise it will be left blank 
+Cell_Surface_Receptor |
+UniProt_Gene_Name |
+Integrated |
+ABUNDANCE_SCORE_ |
+SUPPORT_SCORE | 
+
+
 
 
