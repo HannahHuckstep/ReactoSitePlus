@@ -166,13 +166,15 @@ Type | The type of node
 Database_Link | The link to the database that has more information on the node. Can link back to Reactome, PhosphoSitePlus or UniProt
 Location | The cellular location of the node 
 Status | The status of UniProt nodes, can be nothing (if the database was not updated), 'Current', 'Updated', or 'Deleted?' - the question mark indicates further review is needed. The UniProt Id could be old and outdated or not consistent with the species in the database.  
-Kinase | If the node is a Kinase this column with have the values 'KINASE' otherwise it will be left blank 
-Transcription_Factor | If the node is a Transcription Factor this column with have the values 'TRANSCRIPTION_FACTOR' otherwise it will be left blank 
-Cell_Surface_Receptor |
-UniProt_Gene_Name |
-Integrated |
-ABUNDANCE_SCORE_ |
-SUPPORT_SCORE | 
+Kinase | If the node is a Kinase this column with have the values 'KINASE' otherwise it will be left blank. These are the lists of kinases for [Human](https://www.uniprot.org/uniprot/?query=keyword:%22Kinase%20[KW-0418]%22&format=list&fil=organism:%22Homo%20sapiens%20(Human)%20[9606]%22), and  [Mouse](https://www.uniprot.org/uniprot/?query=keyword:%22Kinase%20[KW-0418]%22&format=list&fil=organism:%22Mus%20musculus%20(Mouse)%20[10090]%22).
+Transcription_Factor | If the node is a Transcription Factor this column with have the values 'TRANSCRIPTION_FACTOR' otherwise it will be left blank. These are the lists of Transcription factors for [Human](https://www.uniprot.org/uniprot/?query=goa:(%22DNA-binding%20transcription%20factor%20activity%20[3700]%22)%20(reviewed:yes%20organism:%22Homo%20sapiens%20(Human)%20[9606]%22)&format=list), and [Mouse](https://www.uniprot.org/uniprot/?query=goa:(%22DNA-binding%20transcription%20factor%20activity%20[3700]%22)%20(reviewed:yes%20organism:%22Mus%20musculus%20(Mouse)%20[10090]%22)&format=list).
+Cell_Surface_Receptor | If the node is a Cell Surface Receptor this column with have the values 'CELL_SURFACE_RECEPTOR' otherwise it will be left blank. These are the lists of Cell surface receptors for [Human](https://www.uniprot.org/uniprot/?query=goa:(%22cell%20surface%20receptor%20signaling%20pathway%20involved%20in%20cell-cell%20signaling%20[1905114]%22)%20(reviewed:yes%20organism:%22Homo%20sapiens%20(Human)%20[9606]%22)&format=list) and [Mouse](https://www.uniprot.org/uniprot/?query=goa:(%22cell%20surface%20receptor%20signaling%20pathway%20involved%20in%20cell-cell%20signaling%20[1905114]%22)%20(reviewed:yes%20organism:%22Mus%20musculus%20(Mouse)%20[10090]%22)&format=list).
+UniProt_Gene_Name | The gene name associated with that UniProt ID from UniProt.
+Integrated | If the node is from PhosphoSitePlus the value will be True. 
+ABUNDANCE_SCORE_ | The abundance score mapped from the data for a node. There may be multiple Abundance scores in a single database derived from multiple experiments. Each row labelled ABUNDANCE_SCORE_ will contain the experiment name in the suffix after the last '_'. 
+SUPPORT_SCORE_ | The support score mapped from the data for a node. There may be multiple Support scores in a single database derived from multiple experiments. Each row labelled SUPPORT_SCORE_ will contain the experiment name in the suffix after the last '_'. 
+
+
 
 
 
