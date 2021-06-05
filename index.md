@@ -148,12 +148,13 @@ Which we would read as the node with the id ```21``` is an ```INPUT``` to the re
 
 The attribute file will contain all attributes associated with each node. An example of an attribute file looks like: 
 
-```
-Node_ID Database_ID     Display_Name    Type    Database_Link   Location        Status  Kinase  Transcription_Factor    Cell_Surface_Receptor   UniProt_Gene_Name       Integrated      ABUNDANCE_SCORE
-21      Protein2090     p-S568-MLXIPL   Protein  http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-163687.1        nucleoplasm                     TRANSCRIPTION_FACTOR            MLXIPL
-24      SmallMolecule848        Pi      SmallMolecule    http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-ALL-113550.4        nucleoplasm                 20      BiochemicalReaction1310 [Dephosphorylation of pChREBP (Ser 568) by PP2A]        BiochemicalReaction      http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-164056.2
-23      Protein2090_p-S_568     p-S_568 p_S             568                  
-```
+Node_ID | Database_ID | Display_Name | Type | Database_Link | Location | Status | Kinase | Transcription_Factor | Cell_Surface_Receptor | UniProt_Gene_Name | Integrated | ABUNDANCE_SCORE_wt | SUPPORT_SCORE_wt | ABUNDANCE_SCORE_ctrl | SUPPORT_SCORE_ctrl
+--------|-------------|--------------|------|---------------|----------|--------|--------|----------------------|-----------------------|-------------------|------------|--------------------|------------------|----------------------|-------------------
+21 | Protein2090 | p-S568-MLXIPL | Protein | http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-163687.1 | nucleoplasm | | | TRANSCRIPTION_FACTOR | | MLXIPL | | 3.2 | 0.9 | -1.5 | 0.5
+24 | SmallMolecule848 | Pi | SmallMolecule | http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-ALL-113550.4 | nucleoplasm | | | | | | | | | | 
+20 | BiochemicalReaction1310 | [Dephosphorylation of pChREBP (Ser 568) by PP2A] | BiochemicalReaction | http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-164056.2 | | | | | | | | | | | 
+23 | Protein2090_p-S_568 | p-S_568 | p_S | | 568 | | | | | | | | | | | 
+
 
 Where the attributes are associated with the node ids found in the SIF file. The first line contains all of the attributes 
 
