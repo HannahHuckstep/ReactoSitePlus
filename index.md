@@ -108,13 +108,13 @@ java -jar ./path/to/jars/RactoSitePlus.jar -m MapPeptides -idb ./path/to/graph/ 
                          
 In order to map your data you will need an input file with the following 4 columns; 
 1. A column where each cell contains a single UniProt ID corresponding to a peptide. *The name of the column cannot contain spaces*. 
-    1. e.g., leading_razor_protein 
+    * e.g., leading_razor_protein 
 2. A column specifying the modified peptide sequence. *The name of the column cannot contain spaces*. 
-    1. The modified peptide may be one of 2 different formats. Either \_(ac)AAAITDM(ox)ADLEELSRLS(ph)PLPPGS(ph)PGSAAR\_  or AAAITDMADLEELSRLpSPLPPGpSPGSAAR
+    * The modified peptide may be one of 2 different formats. Either \_(ac)AAAITDM(ox)ADLEELSRLS(ph)PLPPGS(ph)PGSAAR\_  or AAAITDMADLEELSRLpSPLPPGpSPGSAAR
 3. A column containing the value you would like mapped. *The name of the column cannot contain spaces*. 
-    1. e.g., the column that holds: p-value, SILAC_ratio, log2_intensity
+    * e.g., the column that holds: p-value, SILAC_ratio, log2_intensity
 4. A column you would like the mapped values associated with, such as the experiment name or time. *The name of the column cannot contain spaces*. 
-    1. e.g., the column that holds:  stimulated, unstimulated, time_point_1
+    * e.g., the column that holds:  stimulated, unstimulated, time_point_1
 
 
 ## Analysing Mapped Network 
