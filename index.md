@@ -136,7 +136,7 @@ Now that the network has the data mapped to it, there are a number of ways to an
 ### Minimal Connection Network 
 
 ### Visualization 
-#### Writing the mapped database to a SIF 
+#### Cytoscape
 After the database is mapped to you can write it to a Simple Interaction Format (SIF) file to import into [cytoscape](https://cytoscape.org/) along with an attribute file. The SIF file will be names SIF.sif, which can be renamed but must keep the .sif extension. An example of a SIF file looks like: 
 
 ```
@@ -197,7 +197,33 @@ Now your database should be ready to be explored. You may select nodes from the 
 ![Cytoscape new network button](https://user-images.githubusercontent.com/9949832/120895262-8164ed00-c65f-11eb-9c49-383c636fe57f.png)
 
 
+#### Neo4j
+To view and interact with the embedded neo4j databse please follow these instructions: 
+1. Download and install the [Neo4j](https://neo4j.com/download-center/#community) (community edition), version 3.5.X as there is a compatibility issue with the later versions.
+2. Untar/unzip Neo4j tar/zip file.
+3. Copy your current mapped graph directory into a new directory named graph.db. 
+    1. You can do this in the command line using this command (for Mac/Linux): ```cp -r path/to/graph/ /graph.db/```
+4. Now that you have your graph.db directory, move it into /path/to/neo4j/databases/ and start it with the command ```./path/to/neo4j/bin/neo4j start``` (stop with ``` ./path/to/neo4j/bin/neo4j stop```). It should now be available to view in [localhost](http://localhost:7474/browser/)
+    1. Or you can do this proccess manually in the Neo4j desktop app as shown below: 
+    2. First open the app and make a new project
+    ![Screen Shot 2021-06-06 at 1 42 03 pm](https://user-images.githubusercontent.com/9949832/120911909-582f7580-c6ce-11eb-8b08-114368301918.png)
+    4. In the databases section, choose add database. Then, select 'create a local graph'
+    ![Screen Shot 2021-06-06 at 1 42 15 pm](https://user-images.githubusercontent.com/9949832/120911922-654c6480-c6ce-11eb-8d66-41ebd101bb5d.png)
+    7. Set the name an password to your choosing and create
+    ![Screen Shot 2021-06-06 at 1 42 28 pm](https://user-images.githubusercontent.com/9949832/120911946-8614ba00-c6ce-11eb-959c-26bd88788176.png)
+    9. Then choose the menu in the top right-hand corner (highlighted in red) and select 'Manage database' 
+    ![Screen Shot 2021-06-06 at 1 42 46 pm](https://user-images.githubusercontent.com/9949832/120911966-ba887600-c6ce-11eb-8330-1eaff43221ae.png)
+    ![Screen Shot 2021-06-06 at 1 43 02 pm](https://user-images.githubusercontent.com/9949832/120911977-d3912700-c6ce-11eb-8eca-9b06f077016b.png)
+    10. Next, select the open terminal button (highlighted in red)
+    ![Screen Shot 2021-06-06 at 1 43 14 pm](https://user-images.githubusercontent.com/9949832/120912008-1521d200-c6cf-11eb-9d6c-53db72465164.png)
+    12. Once the terminal is open you can copy your graph.db directory into the local directory. The command required is highlighted in red as well as available here (for Mac/Linux) : ```cp -r path/to/graph.db ./```
+    ![Screen Shot 2021-06-06 at 1 46 09 pm](https://user-images.githubusercontent.com/9949832/120912068-8c576600-c6cf-11eb-9a8a-47068f9006dd.png)
+    13. After the graph.db is in Neo4j, you can press play to start the local database. (highlighted in red) 
+    ![Screen Shot 2021-06-06 at 1 47 47 pm](https://user-images.githubusercontent.com/9949832/120912100-c7f23000-c6cf-11eb-984b-06f8094d7806.png)
+15. When the database is ready, you can open it to view in your [localhost](http://localhost:7474/browser/)
+    ![Screen Shot 2021-06-06 at 1 49 36 pm](https://user-images.githubusercontent.com/9949832/120912133-10115280-c6d0-11eb-83c5-84c648de5d66.png)
+16. You can then use the Neo4j query language [Cypher](https://neo4j.com/developer/cypher/). An example of looking a node up by id is below. 
+    ![Screen Shot 2021-06-06 at 1 50 58 pm](https://user-images.githubusercontent.com/9949832/120912168-654d6400-c6d0-11eb-952f-4fb634eccb0b.png)
+4. if a Windows user,installation and database instrucitions can be found [here](https://neo4j.com/docs/operations-manual/current/installation/windows/) 
 
-
-
-
+*More instructions are available from [Neo4j](https://neo4j.com/docs/operations-manual/current/installation/) and [Reactome](https://reactome.org/dev/graph-database)*
