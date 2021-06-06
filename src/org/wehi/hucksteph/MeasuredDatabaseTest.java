@@ -1,8 +1,11 @@
 package org.wehi.hucksteph;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.math3.random.EmpiricalDistribution;
 import org.junit.jupiter.api.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.unsafe.impl.batchimport.input.InputException;
 
@@ -12,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -380,21 +384,496 @@ class MeasuredDatabaseTest {
 
     }
 
-    ///////////////////////////////////////////////////////////////////// DONE /////////////////////////////////////////////////////////////////////
-
-
     @Test
     void getNeighbours() {
+        File tempOutputDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/");
+        File tempGraphDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/GRAPH/");
+
+        // in case graph wasn't already deleted
+        InputStream sysInBackup = System.in; // backup System.in to restore it later
+        ByteArrayInputStream in = new ByteArrayInputStream("y".getBytes());
+        System.setIn(in);
+        // Make a new graph
+        DatabaseFactory dbf = new DatabaseFactory(TEST_OWL_FILE, tempGraphDir, false, "human");
+        dbf.createDBfromOWL();
+        System.setIn(sysInBackup);// reset System.in to its original
+
+
+        MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir);
+        GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(tempGraphDir);
+        try(Transaction tx = graphDb.beginTx()){
+            HashSet<Node> nodes = mdb.neighbourTraversal(graphDb.getNodeById(16), 4, graphDb);
+            HashSet<Node> nodesExpected = new HashSet<>();
+            nodesExpected.add(graphDb.getNodeById(16));
+            assertEquals(nodesExpected, nodes);
+
+            HashSet<Node> nodes26 = mdb.neighbourTraversal(graphDb.getNodeById(26), 4, graphDb);
+            HashSet<Node> nodesExpected26 = new HashSet<>();
+            for (int i = 20; i < 29; i++) {
+                nodesExpected26.add(graphDb.getNodeById(i));
+            }
+            assertEquals(nodesExpected26, nodes26);
+
+            HashSet<Node> nodes34 = mdb.neighbourTraversal(graphDb.getNodeById(34), 4, graphDb);
+            HashSet<Node> nodesExpected34 = new HashSet<>();
+            nodesExpected34.add(graphDb.getNodeById(1));
+            nodesExpected34.add(graphDb.getNodeById(29));
+            nodesExpected34.add(graphDb.getNodeById(30));
+            nodesExpected34.add(graphDb.getNodeById(32));
+            nodesExpected34.add(graphDb.getNodeById(34));
+            nodesExpected34.add(graphDb.getNodeById(44));
+            nodesExpected34.add(graphDb.getNodeById(45));
+            assertEquals(nodesExpected34, nodes34);
+
+            tx.success();
+        }
+
+
+        // delete temp directory
+        try{
+            FileUtils.deleteDirectory(tempOutputDir);
+        }catch (IOException ex){
+            ex.printStackTrace();
+        }
+
     }
 
     @Test
-    void testGetNeighbours() {
+    void SP_UID_UID(){
+        File tempOutputDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/");
+        File tempGraphDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/GRAPH/");
+
+        // in case graph wasn't already deleted
+        InputStream sysInBackup = System.in; // backup System.in to restore it later
+        ByteArrayInputStream in = new ByteArrayInputStream("y".getBytes());
+        System.setIn(in);
+        // Make a new graph
+        DatabaseFactory dbf = new DatabaseFactory(TEST_OWL_FILE, tempGraphDir, false, "human");
+        dbf.createDBfromOWL();
+        System.setIn(sysInBackup);// reset System.in to its original
+
+
+        EmbeddedNeo4jDatabase edb = new EmbeddedNeo4jDatabase(tempGraphDir, tempOutputDir);
+        try {
+
+            InputStream sysInBackup2 = System.in; // backup System.in to restore it later
+            ByteArrayInputStream in2 = new ByteArrayInputStream("UniProtID mod_Seq pVal expr".getBytes());
+            System.setIn(in2);
+            edb.mapMQPhosphopeps(TEST_DATA_FILE, "HighestSupport"); //TODO change to actual input file
+            System.setIn(sysInBackup2);// reset System.in to its original
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir, tempOutputDir);
+        try {
+            mdb.shortestPath("Q9UH92-2", "Q99943", "Support");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        File file1 = new File(tempOutputDir + "/Q9UH92-2_to_Q99943_downstream.tsv");
+        File file2 = new File("test/expected/shortestPath/Q9UH92-2_to_Q99943_downstream.tsv");
+
+        try {
+            assertTrue(FileUtils.contentEquals(file1, file2));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        File file3 = new File(tempOutputDir + "/ShortestPath_Q9UH92-2_to_Q99943.tsv");
+        File file4 = new File("test/expected/shortestPath/ShortestPath_Q9UH92-2_to_Q99943.tsv");
+
+        try {
+            assertTrue(FileUtils.contentEquals(file3, file4));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // delete temp directory
+        try{
+            FileUtils.deleteDirectory(tempOutputDir);
+        }catch (IOException ex){
+            ex.printStackTrace();
+        }
+
     }
 
     @Test
-    void weightedSPTraversal() {
+    void SP_nodeID_nodeID(){
+        File tempOutputDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/");
+        File tempGraphDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/GRAPH/");
+
+        // in case graph wasn't already deleted
+        InputStream sysInBackup = System.in; // backup System.in to restore it later
+        ByteArrayInputStream in = new ByteArrayInputStream("y".getBytes());
+        System.setIn(in);
+        // Make a new graph
+        DatabaseFactory dbf = new DatabaseFactory(TEST_OWL_FILE, tempGraphDir, false, "human");
+        dbf.createDBfromOWL();
+        System.setIn(sysInBackup);// reset System.in to its original
+
+
+        EmbeddedNeo4jDatabase edb = new EmbeddedNeo4jDatabase(tempGraphDir, tempOutputDir);
+        try {
+
+            InputStream sysInBackup2 = System.in; // backup System.in to restore it later
+            ByteArrayInputStream in2 = new ByteArrayInputStream("UniProtID mod_Seq pVal expr".getBytes());
+            System.setIn(in2);
+            edb.mapMQPhosphopeps(TEST_DATA_FILE, "HighestSupport"); //TODO change to actual input file
+            System.setIn(sysInBackup2);// reset System.in to its original
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir, tempOutputDir);
+        try {
+            mdb.shortestPath("13", "26", "Abundance");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        File file1 = new File(tempOutputDir + "/13_to_26_downstream.tsv");
+        File file2 = new File("test/expected/shortestPath/13_to_26_downstream.tsv");
+
+        try {
+            assertTrue(FileUtils.contentEquals(file1, file2));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        File file3 = new File(tempOutputDir + "/ShortestPath_13_to_26.tsv");
+        File file4 = new File("test/expected/shortestPath/ShortestPath_13_to_26.tsv");
+
+        try {
+            assertTrue(FileUtils.contentEquals(file3, file4));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // delete temp directory
+        try{
+            FileUtils.deleteDirectory(tempOutputDir);
+        }catch (IOException ex){
+            ex.printStackTrace();
+        }
+
     }
 
+    @Test
+    void SP_UID_nodeID(){
+        File tempOutputDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/");
+        File tempGraphDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/GRAPH/");
+
+        // in case graph wasn't already deleted
+        InputStream sysInBackup = System.in; // backup System.in to restore it later
+        ByteArrayInputStream in = new ByteArrayInputStream("y".getBytes());
+        System.setIn(in);
+        // Make a new graph
+        DatabaseFactory dbf = new DatabaseFactory(TEST_OWL_FILE, tempGraphDir, false, "human");
+        dbf.createDBfromOWL();
+        System.setIn(sysInBackup);// reset System.in to its original
+
+
+        EmbeddedNeo4jDatabase edb = new EmbeddedNeo4jDatabase(tempGraphDir, tempOutputDir);
+        try {
+
+            InputStream sysInBackup2 = System.in; // backup System.in to restore it later
+            ByteArrayInputStream in2 = new ByteArrayInputStream("UniProtID mod_Seq pVal expr".getBytes());
+            System.setIn(in2);
+            edb.mapMQPhosphopeps(TEST_DATA_FILE, "HighestSupport"); //TODO change to actual input file
+            System.setIn(sysInBackup2);// reset System.in to its original
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir, tempOutputDir);
+        try {
+            mdb.shortestPath("P06213", "26", "Support");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        File file1 = new File(tempOutputDir + "/P06213_to_26_downstream.tsv");
+        File file2 = new File("test/expected/shortestPath/P06213_to_26_downstream.tsv");
+
+        try {
+            assertTrue(FileUtils.contentEquals(file1, file2));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        File file3 = new File(tempOutputDir + "/ShortestPath_P06213_to_26.tsv");
+        File file4 = new File("test/expected/shortestPath/ShortestPath_P06213_to_26.tsv");
+
+        try {
+            assertTrue(FileUtils.contentEquals(file3, file4));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // delete temp directory
+        try{
+            FileUtils.deleteDirectory(tempOutputDir);
+        }catch (IOException ex){
+            ex.printStackTrace();
+        }
+
+    }
+
+    @Test
+    void SP_SupportScore(){
+        File tempOutputDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/");
+        File tempGraphDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/GRAPH/");
+
+        // in case graph wasn't already deleted
+        InputStream sysInBackup = System.in; // backup System.in to restore it later
+        ByteArrayInputStream in = new ByteArrayInputStream("y".getBytes());
+        System.setIn(in);
+        // Make a new graph
+        DatabaseFactory dbf = new DatabaseFactory(TEST_OWL_FILE, tempGraphDir, false, "human");
+        dbf.createDBfromOWL();
+        System.setIn(sysInBackup);// reset System.in to its original
+
+
+        EmbeddedNeo4jDatabase edb = new EmbeddedNeo4jDatabase(tempGraphDir, tempOutputDir);
+        try {
+
+            InputStream sysInBackup2 = System.in; // backup System.in to restore it later
+            ByteArrayInputStream in2 = new ByteArrayInputStream("UniProtID mod_Seq pVal expr".getBytes());
+            System.setIn(in2);
+            edb.mapMQPhosphopeps(TEST_DATA_FILE, "HighestSupport"); //TODO change to actual input file
+            System.setIn(sysInBackup2);// reset System.in to its original
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir, tempOutputDir);
+        try {
+            mdb.shortestPath("P06213", "22", "Support");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        File file1 = new File(tempOutputDir + "/P06213_to_22_downstream.tsv");
+        File file2 = new File("test/expected/shortestPath/P06213_to_22_downstream_SS.tsv");
+
+        try {
+            assertTrue(FileUtils.contentEquals(file1, file2));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        File file3 = new File(tempOutputDir + "/ShortestPath_P06213_to_22.tsv");
+        File file4 = new File("test/expected/shortestPath/ShortestPath_P06213_to_22_SS.tsv");
+
+        try {
+            assertTrue(FileUtils.contentEquals(file3, file4));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // delete temp directory
+        try{
+            FileUtils.deleteDirectory(tempOutputDir);
+        }catch (IOException ex){
+            ex.printStackTrace();
+        }
+
+    }
+
+    @Test
+    void SP_AbundanceScore(){
+        File tempOutputDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/");
+        File tempGraphDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/GRAPH/");
+
+        // in case graph wasn't already deleted
+        InputStream sysInBackup = System.in; // backup System.in to restore it later
+        ByteArrayInputStream in = new ByteArrayInputStream("y".getBytes());
+        System.setIn(in);
+        // Make a new graph
+        DatabaseFactory dbf = new DatabaseFactory(TEST_OWL_FILE, tempGraphDir, false, "human");
+        dbf.createDBfromOWL();
+        System.setIn(sysInBackup);// reset System.in to its original
+
+
+        EmbeddedNeo4jDatabase edb = new EmbeddedNeo4jDatabase(tempGraphDir, tempOutputDir);
+        try {
+
+            InputStream sysInBackup2 = System.in; // backup System.in to restore it later
+            ByteArrayInputStream in2 = new ByteArrayInputStream("UniProtID mod_Seq pVal expr".getBytes());
+            System.setIn(in2);
+            edb.mapMQPhosphopeps(TEST_DATA_FILE, "HighestSupport"); //TODO change to actual input file
+            System.setIn(sysInBackup2);// reset System.in to its original
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir, tempOutputDir);
+        try {
+            mdb.shortestPath("P06213", "22", "Abundance");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        File file1 = new File(tempOutputDir + "/P06213_to_22_downstream.tsv");
+        File file2 = new File("test/expected/shortestPath/P06213_to_22_downstream.tsv");
+
+        try {
+            assertTrue(FileUtils.contentEquals(file1, file2));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        File file3 = new File(tempOutputDir + "/ShortestPath_P06213_to_22.tsv");
+        File file4 = new File("test/expected/shortestPath/ShortestPath_P06213_to_22.tsv");
+
+        try {
+            assertTrue(FileUtils.contentEquals(file3, file4));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // delete temp directory
+        try{
+            FileUtils.deleteDirectory(tempOutputDir);
+        }catch (IOException ex){
+            ex.printStackTrace();
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////// DONE /////////////////////////////////////////////////////////////////////
+
+    @Test
+    void SP_nodeID_UID_noPath(){
+        File tempOutputDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/");
+        File tempGraphDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/GRAPH/");
+
+        // in case graph wasn't already deleted
+        InputStream sysInBackup = System.in; // backup System.in to restore it later
+        ByteArrayInputStream in = new ByteArrayInputStream("y".getBytes());
+        System.setIn(in);
+        // Make a new graph
+        DatabaseFactory dbf = new DatabaseFactory(TEST_OWL_FILE, tempGraphDir, false, "human");
+        dbf.createDBfromOWL();
+        System.setIn(sysInBackup);// reset System.in to its original
+
+
+        EmbeddedNeo4jDatabase edb = new EmbeddedNeo4jDatabase(tempGraphDir, tempOutputDir);
+        try {
+
+            InputStream sysInBackup2 = System.in; // backup System.in to restore it later
+            ByteArrayInputStream in2 = new ByteArrayInputStream("UniProtID mod_Seq pVal expr".getBytes());
+            System.setIn(in2);
+            edb.mapMQPhosphopeps(TEST_DATA_FILE, "HighestSupport"); //TODO change to actual input file
+            System.setIn(sysInBackup2);// reset System.in to its original
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir, tempOutputDir);
+
+        Exception exception = assertThrows(Exception.class, () ->
+        { mdb.shortestPath("34", "Q99943", "Support");
+        });
+        System.setIn(sysInBackup);// reset System.in to its original
+
+        String expectedMessage = "No path between nodes 34 and Q99943 either upstream or downstream";
+        String actualMessage = exception.getMessage();
+
+        assertTrue(actualMessage.contains(expectedMessage));
+
+
+        // delete temp directory
+        try{
+            FileUtils.deleteDirectory(tempOutputDir);
+        }catch (IOException ex){
+            ex.printStackTrace();
+        }
+
+    }
+
+    @Test
+    void SP_throwErrorWhenUIDNotInDb(){
+        File tempOutputDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/");
+        File tempGraphDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/GRAPH/");
+
+        // in case graph wasn't already deleted
+        InputStream sysInBackup = System.in; // backup System.in to restore it later
+        ByteArrayInputStream in = new ByteArrayInputStream("y".getBytes());
+        System.setIn(in);
+        // Make a new graph
+        DatabaseFactory dbf = new DatabaseFactory(TEST_OWL_FILE, tempGraphDir, false, "human");
+        dbf.createDBfromOWL();
+        System.setIn(sysInBackup);// reset System.in to its original
+
+        MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir, tempOutputDir);
+
+        Exception exception = assertThrows(Exception.class, () ->
+        { mdb.shortestPath("P12345", "Q99943", "Support");
+        });
+        System.setIn(sysInBackup);// reset System.in to its original
+
+
+        String expectedMessage = "No path between nodes 34 and Q99943 either upstream or downstream";
+        String actualMessage = exception.getMessage();
+
+        assertTrue(actualMessage.contains(expectedMessage));
+
+
+        // delete temp directory
+        try{
+            FileUtils.deleteDirectory(tempOutputDir);
+        }catch (IOException ex){
+            ex.printStackTrace();
+        }
+    }
+
+    @Test
+    void SP_throwErrorWhenNodeIDNotInDb(){
+        File tempOutputDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/");
+        File tempGraphDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/GRAPH/");
+
+        // in case graph wasn't already deleted
+        InputStream sysInBackup = System.in; // backup System.in to restore it later
+        ByteArrayInputStream in = new ByteArrayInputStream("y".getBytes());
+        System.setIn(in);
+        // Make a new graph
+        DatabaseFactory dbf = new DatabaseFactory(TEST_OWL_FILE, tempGraphDir, false, "human");
+        dbf.createDBfromOWL();
+        System.setIn(sysInBackup);// reset System.in to its original
+
+        MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir, tempOutputDir);
+
+        Exception exception = assertThrows(Exception.class, () ->
+        { mdb.shortestPath("100", "Q99943", "Support");
+        });
+        System.setIn(sysInBackup);// reset System.in to its original
+
+
+        String expectedMessage = "No path between nodes 34 and Q99943 either upstream or downstream";
+        String actualMessage = exception.getMessage();
+
+        assertTrue(actualMessage.contains(expectedMessage));
+
+
+        // delete temp directory
+        try{
+            FileUtils.deleteDirectory(tempOutputDir);
+        }catch (IOException ex){
+            ex.printStackTrace();
+        }
+    }
+
+
+    @Test
+    void MCNTest(){
+
+    }
 
     @Test
     void myDist(){
@@ -405,6 +884,21 @@ class MeasuredDatabaseTest {
         MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir, tempOutputDir);
         try {
             mdb.empiricalNullDistribution(miniDataFile, 1000, 3);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Test
+    void test(){
+        File tempOutputDir = new File("test/actual/toBeDeleted/");
+        File tempGraphDir = new File( "test/actual/toBeDeleted/GRAPH/");
+
+        EmbeddedNeo4jDatabase edb = new EmbeddedNeo4jDatabase(tempGraphDir,tempOutputDir );
+
+        try {
+            edb.writeSIF();
         } catch (IOException e) {
             e.printStackTrace();
         }

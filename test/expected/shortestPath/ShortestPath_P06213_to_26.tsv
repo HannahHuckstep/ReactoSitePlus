@@ -1,0 +1,33 @@
+Shortest Paths Report: 
+
+Path between P06213 and 26 in experiment 0
+P06213 (4) is Downstream of 26 (26)
+Length of path: 3
+Number of molecules: 3
+Number of reactions: 0
+Number of proteins: 1
+Number of measured proteins: 1
+Number of phosphorylated proteins: 1
+Number of measured phosphorylated proteins: 1
+Number of complexes: 2
+Number of measured complexes: 2
+Path with id's:
+(4)-[ID_BELONGS_TO,34]->(17)-[COMPONENT,52]->(46)-[COMPONENT,50]->(26) weight:1.875
+Path with names:
+P06213->[ID_BELONGS_TO](0.42)->phospho-p-3-INSR(400-1382)->[COMPONENT](0.47)->p-6Y-insulin receptor->[COMPONENT](0.985)->Insulin:p-6Y-Insulin receptor->
+
+Path between P06213 and 26 in experiment 1
+P06213 (4) is Downstream of 26 (26)
+Length of path: 3
+Number of molecules: 3
+Number of reactions: 0
+Number of proteins: 1
+Number of measured proteins: 1
+Number of phosphorylated proteins: 1
+Number of measured phosphorylated proteins: 1
+Number of complexes: 2
+Number of measured complexes: 2
+Path with id's:
+(4)-[ID_BELONGS_TO,34]->(17)-[COMPONENT,52]->(46)-[COMPONENT,50]->(26) weight:1.875
+Path with names:
+P06213->[ID_BELONGS_TO](0.42)->phospho-p-3-INSR(400-1382)->[COMPONENT](0.47)->p-6Y-insulin receptor->[COMPONENT](0.985)->Insulin:p-6Y-Insulin receptor->

@@ -1,0 +1,33 @@
+Shortest Paths Report: 
+
+Path between P06213 and 22 in experiment 0
+P06213 (4) is Downstream of 22 (22)
+Length of path: 2
+Number of molecules: 2
+Number of reactions: 0
+Number of proteins: 1
+Number of measured proteins: 1
+Number of phosphorylated proteins: 0
+Number of measured phosphorylated proteins: 0
+Number of complexes: 1
+Number of measured complexes: 1
+Path with id's:
+(4)-[ID_BELONGS_TO,29]->(13)-[COMPONENT,46]->(22) weight:4.85
+Path with names:
+P06213->[ID_BELONGS_TO](0.0)->INSR(763-1382)->[COMPONENT](4.85)->Insulin receptor->
+
+Path between P06213 and 22 in experiment 1
+P06213 (4) is Downstream of 22 (22)
+Length of path: 2
+Number of molecules: 2
+Number of reactions: 0
+Number of proteins: 1
+Number of measured proteins: 1
+Number of phosphorylated proteins: 0
+Number of measured phosphorylated proteins: 0
+Number of complexes: 1
+Number of measured complexes: 1
+Path with id's:
+(4)-[ID_BELONGS_TO,29]->(13)-[COMPONENT,46]->(22) weight:0.64
+Path with names:
+P06213->[ID_BELONGS_TO](0.0)->INSR(763-1382)->[COMPONENT](0.64)->Insulin receptor->

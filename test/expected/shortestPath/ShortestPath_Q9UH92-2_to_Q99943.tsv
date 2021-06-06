@@ -1,0 +1,33 @@
+Shortest Paths Report: 
+
+Path between Q9UH92-2 and Q99943 in experiment 0
+Q9UH92-2 (31) is Downstream of Q99943 (2)
+Length of path: 6
+Number of molecules: 3
+Number of reactions: 2
+Number of proteins: 2
+Number of measured proteins: 0
+Number of phosphorylated proteins: 0
+Number of measured phosphorylated proteins: 0
+Number of complexes: 1
+Number of measured complexes: 0
+Path with id's:
+(31)-[ID_BELONGS_TO,9]->(30)-[COMPONENT,53]->(34)-[CONTROLS,41]->(45)-[ACTIVATION,42]->(44)-[OUTPUT,40]->(1)<-[ID_BELONGS_TO,20]-(2) weight:9.0
+Path with names:
+Q9UH92-2->[ID_BELONGS_TO](1.5)->MLX->[COMPONENT](1.5)->ChREBP:MLX->[CONTROLS](1.5)->NA->[ACTIVATION](1.5)->[Transcriptional activation of GP-acyl transferase gene by ChREBP:MLX]->[OUTPUT](1.5)->AGPAT1->[ID_BELONGS_TO](1.5)->Q99943->
+
+Path between Q9UH92-2 and Q99943 in experiment 1
+Q9UH92-2 (31) is Downstream of Q99943 (2)
+Length of path: 6
+Number of molecules: 3
+Number of reactions: 2
+Number of proteins: 2
+Number of measured proteins: 0
+Number of phosphorylated proteins: 0
+Number of measured phosphorylated proteins: 0
+Number of complexes: 1
+Number of measured complexes: 0
+Path with id's:
+(31)-[ID_BELONGS_TO,9]->(30)-[COMPONENT,53]->(34)-[CONTROLS,41]->(45)-[ACTIVATION,42]->(44)-[OUTPUT,40]->(1)<-[ID_BELONGS_TO,20]-(2) weight:9.0
+Path with names:
+Q9UH92-2->[ID_BELONGS_TO](1.5)->MLX->[COMPONENT](1.5)->ChREBP:MLX->[CONTROLS](1.5)->NA->[ACTIVATION](1.5)->[Transcriptional activation of GP-acyl transferase gene by ChREBP:MLX]->[OUTPUT](1.5)->AGPAT1->[ID_BELONGS_TO](1.5)->Q99943->

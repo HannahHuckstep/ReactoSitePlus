@@ -246,6 +246,9 @@ public class EmbeddedNeo4jDatabase {
                             }else if(property.equals("DISPLAY_NAME")){
                                 atrs = atrs.concat( "Display_Name\t");
                                 properties2print.add(orderInt);
+                            }else if(property.equals("UNIPROT_ID")){
+                                atrs = atrs.concat( "UniProt_ID\t");
+                                properties2print.add(orderInt);
                             }else if(property.equals("UNIPROT_NAME")){
                                 atrs = atrs.concat( "UniProt_Gene_Name\t");
                                 properties2print.add(orderInt);

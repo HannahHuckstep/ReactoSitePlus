@@ -1,0 +1,33 @@
+Shortest Paths Report: 
+
+Path between 13 and 26 in experiment 0
+13 (13) is Downstream of 26 (26)
+Length of path: 4
+Number of molecules: 4
+Number of reactions: 1
+Number of proteins: 1
+Number of measured proteins: 1
+Number of phosphorylated proteins: 0
+Number of measured phosphorylated proteins: 0
+Number of complexes: 3
+Number of measured complexes: 3
+Path with id's:
+(13)-[COMPONENT,46]->(22)-[COMPONENT,48]->(23)-[INPUT,3]->(24)-[OUTPUT,5]->(26) weight:37.237
+Path with names:
+INSR(763-1382)->[COMPONENT](4.85)->Insulin receptor->[COMPONENT](8.875)->Insulin:Insulin receptor->[INPUT](12.9)->[Autophosphorylation of insulin receptor]->[OUTPUT](10.612)->Insulin:p-6Y-Insulin receptor->
+
+Path between 13 and 26 in experiment 1
+13 (13) is Downstream of 26 (26)
+Length of path: 4
+Number of molecules: 4
+Number of reactions: 1
+Number of proteins: 1
+Number of measured proteins: 1
+Number of phosphorylated proteins: 0
+Number of measured phosphorylated proteins: 0
+Number of complexes: 3
+Number of measured complexes: 3
+Path with id's:
+(13)-[COMPONENT,46]->(22)-[COMPONENT,48]->(23)-[INPUT,3]->(24)-[OUTPUT,5]->(26) weight:3.852
+Path with names:
+INSR(763-1382)->[COMPONENT](0.64)->Insulin receptor->[COMPONENT](0.92)->Insulin:Insulin receptor->[INPUT](1.2)->[Autophosphorylation of insulin receptor]->[OUTPUT](1.092)->Insulin:p-6Y-Insulin receptor->

@@ -542,7 +542,9 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                 .relationships(RelTypes.OUTPUT, Direction.BOTH)
                 .relationships(RelTypes.INPUT, Direction.BOTH)
                 .relationships(RelTypes.CONTROLS, Direction.BOTH)
-                .relationships(RelTypes.CATALYSIS, Direction.BOTH);
+                .relationships(RelTypes.CATALYSIS, Direction.BOTH)
+                .relationships(RelationshipType.withName("ACTIVATION"), Direction.BOTH)
+                .relationships(RelationshipType.withName("INHIBITION"), Direction.BOTH);
 
         return td.traverse(node);
     }
@@ -881,8 +883,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                                     RelTypes.CONTROLS, Direction.OUTGOING,
                                     RelTypes.CATALYSIS, Direction.OUTGOING,
                                     RelTypes.ID_BELONGS_TO, Direction.OUTGOING,
-                                    RelTypes.ID_BELONGS_TO, Direction.INCOMING,
-                                    RelTypes.COMPONENT, Direction.OUTGOING, //TODO ??
+                                    RelTypes.COMPONENT, Direction.OUTGOING,
                                     RelationshipType.withName("ACTIVATION"), Direction.OUTGOING,
                                     RelationshipType.withName("INHIBITION"), Direction.OUTGOING),
                             weightString,
@@ -895,9 +896,8 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                                     RelTypes.OUTPUT, Direction.INCOMING,
                                     RelTypes.CONTROLS, Direction.INCOMING,
                                     RelTypes.CATALYSIS, Direction.INCOMING,
-                                    RelTypes.ID_BELONGS_TO, Direction.INCOMING,
                                     RelTypes.ID_BELONGS_TO, Direction.OUTGOING,
-                                    RelTypes.COMPONENT, Direction.INCOMING, //TODO ??
+                                    RelTypes.COMPONENT, Direction.INCOMING,
                                     RelationshipType.withName("ACTIVATION"), Direction.INCOMING,
                                     RelationshipType.withName("INHIBITION"), Direction.INCOMING),
                             weightString,
@@ -1347,8 +1347,8 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
 
     private Integer getLength(Iterator<WeightedPath> thing) {
         Integer count = 0;
-        for (Iterator<WeightedPath> it = thing; it.hasNext(); ) {
-            Object object = it.next();
+        while(thing.hasNext()){
+            Object object = thing.next();
             count ++;
         }
         return count;
