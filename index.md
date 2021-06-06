@@ -128,7 +128,6 @@ Now that the network has the data mapped to it, there are a number of ways to an
 
 ### Traversal Analysis 
 
-
 ### Neighbourhood Analysis 
 
 ### Shortest Path 
@@ -244,4 +243,4 @@ To create an embedded integrated database, first download the latest OWL files f
     * This function downloads many files live from UniProt. Therefore if internet access is unstable this function may crash. You can simply re-enter the command and it will overwrite the current failed output. 
 5. Once the Reactome graph is built, you can integrate with PhosphoSitePlus with the 'IntegratePSP' mode. 
     * e.g., ``` java -jar ./path/to/jars/ReactoSitePlus.jar -m IntegratePSP -idb ./path/to/Reactome/Graph/ -op ./path/for/integration/report/output/ -iof ./path/to/PSP.owl```
-    * **One key thing to remember is that the orgininal Reactome database that is input into this function is modified and becomes the integrated database. **
+    * **One key thing to remember is that the orgininal Reactome database that is input into this function is modified and becomes the integrated database.**
