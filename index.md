@@ -227,3 +227,21 @@ To view and interact with the embedded neo4j databse please follow these instruc
 4. if a Windows user,installation and database instrucitions can be found [here](https://neo4j.com/docs/operations-manual/current/installation/windows/) 
 
 *More instructions are available from [Neo4j](https://neo4j.com/docs/operations-manual/current/installation/) and [Reactome](https://reactome.org/dev/graph-database)*
+
+## Creating an integrated Database 
+
+To create an embedded integrated database, first download the latest OWL files from [Reactome](https://reactome.org/download/current/biopax.zip) and [PhosphoSitePlus](https://www.phosphosite.org/homeAction). 
+1. Download the latest [Reactome](https://reactome.org/download/current/biopax.zip) database.
+2. Untar/unzip Neo4j tar/zip file.
+    * you can use either Homo_sapiens.owl or Mus_musculus.owl
+3. Download the latest [PhosphoSitePlus](https://www.phosphosite.org/homeAction) OWL file. 
+    * Navigate to the downloads section, choose 'Datasets from PSP' 
+    * Read and agree to terms and conditions 
+    * Download 'BioPAX:Kinase-substrate information' 
+4. Create the Reactome embedded database as shown above 
+    * e.g.,  ```java -jar ./path/to/jars/RactoSitePlus.jar -m CreateDB -iof ./path/to/file/Reactome.owl -op ./path/to/graph/ -u T -s h```
+    * Remember to specify wheather or not you'd like the database to be updated and the species 
+    * This function downloads many files live from UniProt. Therefore if internet access is unstable this function may crash. You can simply re-enter the command and it will overwrite the current failed output. 
+5. Once the Reactome graph is built, you can integrate with PhosphoSitePlus with the 'IntegratePSP' mode. 
+    * e.g., ``` java -jar ./path/to/jars/ReactoSitePlus.jar -m IntegratePSP -idb ./path/to/Reactome/Graph/ -op ./path/for/integration/report/output/ -iof ./path/to/PSP.owl```
+    * **One key thing to remember is that the orgininal Reactome database that is input into this function is modified and becomes the integrated database. **
