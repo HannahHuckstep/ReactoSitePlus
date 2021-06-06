@@ -194,7 +194,18 @@ public class EmbeddedNeo4jDatabase {
                 Node node = it.next();
                 count ++;
             }
-            System.out.println("There are " +count+" "+label+"'s in this database: " + databaseDir);
+            if(count.equals(0)){
+                ResourceIterable<Label> allLabels = graphDb.getAllLabels();
+                HashSet labels = new HashSet();
+                for (Label l: allLabels) {
+                    labels.add(l);
+                }
+                System.out.println("There are " +count+" "+label+"'s in this database: " + databaseDir);
+                System.out.println("These are the labels available: ");
+                System.out.println(labels);
+            }else{
+                System.out.println("There are " +count+" "+label+"'s in this database: " + databaseDir);
+            }
         }
 
     }

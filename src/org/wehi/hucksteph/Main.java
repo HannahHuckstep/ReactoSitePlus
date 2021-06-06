@@ -29,7 +29,7 @@ public class Main {
 
         parser.addArgument("--mode", "-m")
                 .dest("mode")
-                .help("The function you would like to perform. \n" +
+                .help("\nThe function you would like to perform. \n" +
                         "Options are:\n" +
                         "                    \"CreateDB\", takes an OWL file [-iof], an output path [-op], an optional update boolean [-u] (can be T or F, default is T), and the species of graph you'd like to make [-s] (can be human (h) or mouse(m))\n" +
                         "                    \"PrintDatabase\", takes in input database [-idb]\n" +
@@ -48,7 +48,8 @@ public class Main {
                                 "\nqPhosMap \t [idb][op][idf][en]" +
                                 "\nqPhosNbhd" +
                                 "\nqPhosMCN \t [idb][op][en]" +
-                                "\nqPhosED \t [idb][op][idf][ss][rn]"
+                                "\nqPhosED \t [idb][op][idf][ss][rn]"+
+                        "\n"
 
                         )
                 .type(String.class)
