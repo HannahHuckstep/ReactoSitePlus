@@ -869,6 +869,49 @@ class MeasuredDatabaseTest {
         }
     }
 
+    @Test
+    void resetScores(){
+
+    }
+
+    @Test
+    void nbhdStats(){
+        File tempOutputDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/");
+        File tempGraphDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/GRAPH/");
+        File qPhosFile = new File("");
+
+        // in case graph wasn't already deleted
+        InputStream sysInBackup = System.in; // backup System.in to restore it later
+        ByteArrayInputStream in = new ByteArrayInputStream("y".getBytes());
+        System.setIn(in);
+        // Make a new graph
+        DatabaseFactory dbf = new DatabaseFactory(TEST_OWL_FILE, tempGraphDir, false, "human");
+        dbf.createDBfromOWL();
+        System.setIn(sysInBackup);// reset System.in to its original
+
+
+        EmbeddedNeo4jDatabase edb = new EmbeddedNeo4jDatabase(tempGraphDir, tempOutputDir);
+        try {
+
+            InputStream sysInBackup2 = System.in; // backup System.in to restore it later
+            ByteArrayInputStream in2 = new ByteArrayInputStream("UniProtID mod_Seq pVal expr".getBytes());
+            System.setIn(in2);
+            edb.mapMQPhosphopeps(TEST_DATA_FILE, "HighestSupport"); //TODO change to actual input file
+            System.setIn(sysInBackup2);// reset System.in to its original
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir, tempOutputDir);
+
+        try {
+            mdb.empiricalNullDistribution(qPhosFile, 10, 10);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
 
     @Test
     void MCNTest(){
@@ -892,8 +935,9 @@ class MeasuredDatabaseTest {
 
     @Test
     void test(){
-        File tempOutputDir = new File("test/actual/toBeDeleted/");
-        File tempGraphDir = new File( "test/actual/toBeDeleted/GRAPH/");
+        File tempOutputDir = new File("test/actual/");
+        //File tempGraphDir = new File( "test/actual/toBeDeleted/GRAPH/");
+        File tempGraphDir = new File( "/Users/huckstep.h/Documents/neo4j/PhlashyName/liveDemo/HUMAN/");
 
         EmbeddedNeo4jDatabase edb = new EmbeddedNeo4jDatabase(tempGraphDir,tempOutputDir );
 
