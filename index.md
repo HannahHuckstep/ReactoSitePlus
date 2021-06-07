@@ -235,13 +235,45 @@ Now that the network has the data mapped to it, there are a number of ways to an
 
 ### Traversal Analysis 
 
-### Neighbourhood Analysis 
+With this function we can look at everything downstream of a protein of interest. 
+
+Using the example data from earlier these are the function inputs: 
+
+We can look at the report:
+
+We can look at the downstream networks in cytoscape: 
+
+### Neighbourhood Analysis
+
+With this function we can prioritize neighbourhoods of signalling.
+
+Using the example data from earlier these are the function inputs: 
+
+We can look at the report:
+
+We can visualize relative statistics in R:
 
 ### Shortest Path 
 
+With this function you can look for the shortest path between 2 proteins. 
+
+Using the example data from earlier these are the function inputs: 
+
+We can look at the report:
+
+We can visualize in cytoscape: 
+
 ### Minimal Connection Network 
 
-## Creating an integrated Database 
+With this function you can generate the network of all shortest paths between all nodes. 
+
+Using the example data from earlier these are the function inputs: 
+
+We can look at the report:
+
+We can visualize in cytoscape: 
+
+## Creating a new integrated Database 
 
 To create an embedded integrated database, first download the latest OWL files from [Reactome](https://reactome.org/download/current/biopax.zip) and [PhosphoSitePlus](https://www.phosphosite.org/homeAction). 
 1. Download the latest [Reactome](https://reactome.org/download/current/biopax.zip) database.
