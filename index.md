@@ -8,7 +8,8 @@ This confidence score summarises support for a given phosphorylation state of a 
 
 In Reactome, each modified protein is treated as a separate entity to the unmodified protein. In this document these entities are referred to as proteoforms, as they are different versions of the same protein and participate in different parts of the network accordingly. Proteoforms are highlighted in green throughout the  below figures.
 
-![Reactome Proteoforms](https://user-images.githubusercontent.com/9949832/121048818-7c887080-c7fa-11eb-9de3-6aa27696b41d.png)
+![Reactome Proteoforms](https://user-images.githubusercontent.com/9949832/121049429-06383e00-c7fb-11eb-8a4d-e9677ad0a220.png)
+
 
 Across all proteoforms (green), all recorded phosphorylations are aggregated into one group called Points of Interest (orange) as shown in above. The phosphorylations recorded in the network in this example (PA,PB, and PC) are shown in purple while, phosphorylations found in the data (and not in the network) are shown in red. 
 
