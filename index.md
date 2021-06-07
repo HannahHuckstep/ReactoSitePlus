@@ -6,9 +6,14 @@ PhlashyNAMe is a command line tool for downstream analysis Proteomics and Phosph
 #### Confidence Score 
 This confidence score summarises support for a given phosphorylation state of a protein over its other phosphorylation states based on observations from the data. 
 
+In Reactome, each modified protein is treated as a separate entity to the unmodified protein. In this document these entities are referred to as proteoforms, as they are different versions of the same protein and participate in different parts of the network accordingly. Proteoforms are highlighted in green throughout the  below figures.
+
+![Reactome Proteoforms](https://user-images.githubusercontent.com/9949832/121048818-7c887080-c7fa-11eb-9de3-6aa27696b41d.png)
+
+Across all proteoforms (green), all recorded phosphorylations are aggregated into one group called Points of Interest (orange) as shown in above. The phosphorylations recorded in the network in this example (PA,PB, and PC) are shown in purple while, phosphorylations found in the data (and not in the network) are shown in red. 
+
 ![Support Score](https://user-images.githubusercontent.com/9949832/120878866-98292680-c602-11eb-9e33-aaf8e3549ee1.png)
 
-In Reactome, each modified protein is treated as a separate entity to the unmodified protein. In this document these entities are referred to as proteoforms, as they are different versions of the same protein and participate in different parts of the network accordingly. Proteoforms are highlighted in green throughout this figure. Across all proteoforms (green), all recorded phosphorylations are aggregated into one group called Points of Interest (orange) as shown in above. The phosphorylations recorded in the network in this example (PA,PB, and PC) are shown in purple while, phosphorylations found in the data (and not in the network) are shown in red. 
 Looking at the rules developed to score each proteoform, we first score each peptide and take the average of the peptide scores to get the proteoform Confidence score. In rule 1 of the peptide score, a match means at the amino acid in the proteoform, and the peptide have the same status (both phosphorylated or both unphosphorylated). We give a score of 0.5 for a mismatch because that peptide supports the existence of that proteoform, but we know that peptide contains a P.O.I. and will support another proteoform better. Next, looking at Rule 2, we take the average of all possible matches. In Rule 3, we multiply by 0.9 to reflect that the database takes precedent over the data. However, we also reduce the weight of the score to reflect the extra unknown phosphorylation. Finally, in Rule 4, because a peptide mapping perfectly to a modified proteoform is uncommon and of interest we multiply the score by 1.5 to highlight the match. However, we do not highlight this if the proteoform is unmodified as perfect matches would be unmodified peptides (which mostly occur from unspecific binding). 
 
 
