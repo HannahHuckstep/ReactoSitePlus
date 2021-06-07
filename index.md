@@ -116,23 +116,19 @@ In order to map your data you will need an input file with the following 4 colum
 4. A column you would like the mapped values associated with, such as the experiment name or time. *The name of the column cannot contain spaces*. 
     * e.g., the column that holds:  stimulated, unstimulated, time_point_1
 
+We will be mapping data from the experiment ... found in ... which looks like ... 
+For this example the parameters we set are: 
 
-## Analysing Mapped Network 
+[screenshots]
 
-Now that the network has the data mapped to it, there are a number of ways to analyse the mapped network. 
-* Traversal analysis 
-* Neighbourhood analysis 
-* Find the shortest path between two proteins 
-* Minimal Connection Network
-* Manual investigation via cytosscape or Neo4j
+After mapping we can look at the mapping report generated for each experiment named in the data named 'PhosphoMappingReport_experiment' to understand how well our experiment mapped... 
 
-### Traversal Analysis 
+[screenshots]
 
-### Neighbourhood Analysis 
+We can also look at our data in relation to qPhos. qPhos is a database holding 554 different experiments accross 137 human cell lines. In order to provide context and understand how well your experimental data mapped, we mapped all 554 experiments to the integrated database and recorded numerous statistics. By running the provided Rscript command( ```Rscript -e "rmarkdown::render('proportionPlots.Rmd')"``` ) in the same directory as the provided 'R' directory you can visualize your experiment in relation to all qPhos experiments as well as other general mapping information. 
 
-### Shortest Path 
+[screenshots]
 
-### Minimal Connection Network 
 
 ### Visualization 
 #### Cytoscape
@@ -226,6 +222,24 @@ To view and interact with the embedded neo4j databse please follow these instruc
 4. if a Windows user,installation and database instrucitions can be found [here](https://neo4j.com/docs/operations-manual/current/installation/windows/) 
 
 *More instructions are available from [Neo4j](https://neo4j.com/docs/operations-manual/current/installation/) and [Reactome](https://reactome.org/dev/graph-database)*
+
+
+## Analysing Mapped Network 
+
+Now that the network has the data mapped to it, there are a number of ways to analyse the mapped network. 
+* Traversal analysis 
+* Neighbourhood analysis 
+* Find the shortest path between two proteins 
+* Minimal Connection Network
+* Manual investigation via cytosscape or Neo4j
+
+### Traversal Analysis 
+
+### Neighbourhood Analysis 
+
+### Shortest Path 
+
+### Minimal Connection Network 
 
 ## Creating an integrated Database 
 
