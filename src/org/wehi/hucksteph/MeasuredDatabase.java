@@ -5,6 +5,7 @@ import org.apache.commons.math3.stat.inference.AlternativeHypothesis;
 import org.apache.commons.math3.stat.inference.BinomialTest;
 import org.apache.commons.math3.stat.inference.ChiSquareTest;
 import org.biopax.paxtools.model.level2.protein;
+import org.neo4j.cypher.internal.frontend.v2_3.ast.functions.Str;
 import org.neo4j.graphalgo.GraphAlgoFactory;
 import org.neo4j.graphalgo.PathFinder;
 import org.neo4j.graphalgo.WeightedPath;
@@ -1355,11 +1356,12 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
         return count;
     }
 
-    void empiricalNullDistribution(File qPhosFile, Integer subsetSize, Integer repetitionNumber ) throws IOException {
+    void empiricalNullDistribution(File qPhosFile, Integer depth, Integer subsetSize, Integer repetitionNumber ) throws IOException {
         File databaseDir = getDatabaseDir();
         File outputFile = getOutputFile();
         GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(databaseDir);
 
+        // reset scores
         try (Transaction tx = graphDb.beginTx()) {
             ResourceIterator<Node> proteins = graphDb.findNodes(Label.label("Protein"));
             for (ResourceIterator<Node> it = proteins; it.hasNext(); ) {
@@ -1367,6 +1369,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                 protein.removeProperty(PropertyType.SUPPORT_SCORE.toString());
                 protein.removeProperty(PropertyType.ABUNDANCE_SCORE.toString());
                 protein.removeProperty(PropertyType.SCORED_BY.toString());
+                protein.removeProperty(PropertyType.MAPPED.toString());
             }
 
             ResourceIterator<Node> complexs = graphDb.findNodes(Label.label("Complex"));
@@ -1375,26 +1378,13 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                 complex.removeProperty(PropertyType.SUPPORT_SCORE.toString());
                 complex.removeProperty(PropertyType.ABUNDANCE_SCORE.toString());
                 complex.removeProperty(PropertyType.SCORED_BY.toString());
+                complex.removeProperty(PropertyType.MAPPED.toString());
             }
             tx.success();
         }
 
-
-
-
-        // get Uniprot accesison, position,  Raw Peptide, log2 ratio
-        // clear file if already exits
-        FileWriter fstream0 = new FileWriter(outputFile + "/EmpiricalDist.tsv");
-        BufferedWriter out0 = new BufferedWriter(fstream0);
-        out0.write("nbhdBaseDBID\tnbhdBaseUID\tnbhdSize\tnbhdMeasured\tavgSScore\tNumIntegrated\n" );
-        out0.close();
-        //Create File to write inputs/Outputs to
-        FileWriter fstream = new FileWriter(outputFile + "/EmpiricalDist.tsv", true);
-        BufferedWriter out = new BufferedWriter(fstream);
-        //out.write("runNumber\tnbhdBaseUID\tnbhdBaseDBID\tnumInDB\tdbMeasured\tnbhdSize\tnbhdMeasured\tavgAScore\tavgSScore\tNumIntegrated\n" );
-
-        /////////////////////////////////////////////////////////////////
-        // Reading file in and getting hashmaps
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Reading file in and getting hashmaps for mapping
 
         // Read in data into Dict
         BufferedReader BR = new BufferedReader(new FileReader(qPhosFile));
@@ -1443,7 +1433,6 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                         conditionCol = i;
                     }
 
-                    //TODO add sample ? within condition? treat sperate?
                 }
                 countID++;
             }else{ //for all other lines
@@ -1621,16 +1610,26 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
 
 
 
-        /////////////////////////////////////////////////////////////////////
-        /////////  subsets, mapping, neighbourhoods, clear
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /////////  subsets & mapping
 
         System.out.println("Selecting UIDs, mapping to database, and generating neighbourhoods...");
         HashMap<Long, ArrayList<Integer>> numMapped = new HashMap<>();
         HashMap<Long,  ArrayList<Double>> avgSScore = new HashMap<>();
+        HashMap<Long,  ArrayList<Double>> sumSScore = new HashMap<>();
+        HashMap<Long,  ArrayList<Double>> medianSScore = new HashMap<>();
+        HashMap<Long,  ArrayList<String>> rangeSScore = new HashMap<>();
+        HashMap<Long,  ArrayList<Double>> stdDevSScore = new HashMap<>();
         HashMap<Long,  Integer> nbhdIntegrated = new HashMap<>();
         HashMap<Long,  Integer> nbhdSize = new HashMap<>();
+        HashMap<Long,  Integer> numUIDs = new HashMap<>();
+        HashMap<Long,  Integer> numUIDsMapped = new HashMap<>();
         HashMap<Long, String> nbhd2UID = new HashMap<>();
-        for (int j = 0; j < repetitionNumber; j ++){
+        HashMap<Long, String> nbhd2DispName = new HashMap<>();
+
+
+
+        for (int j = 1; j < (repetitionNumber+1); j ++){
             System.out.println("\rCurrently performing replicate: " + j);
 
             //sample strategy
@@ -1736,7 +1735,8 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                     ID2aScore_subset);
 
 
-            /////////////////////////////////////////////////////////////////////
+
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // generate neighbourhoods
 
             try (Transaction tx = graphDb.beginTx()) {
@@ -1754,50 +1754,76 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                     numInDb ++;
                 }
 
-
                 ResourceIterator<Node> allPeNodes = graphDb.findNodes(Label.label(LabelTypes.PHYSICAL_ENTITY.toString()));
                 for (ResourceIterator<Node> it = allPeNodes; it.hasNext(); ) {
                     Node physicalEntity = it.next();
+
                     // if pe is measured - gen nbhd
                     ArrayList<Double> nbhdSScores = new ArrayList<>();
-                    ArrayList<Double> nbhdAScores = new ArrayList<>();
                     Integer nbhdSizeInt = 0;
                     Integer nbhdMeasured = 0;
                     Integer numIntegrated = 0;
-                    if(physicalEntity.hasLabel(Label.label("Protein")) | physicalEntity.hasLabel(Label.label("Complex"))) {
-                        HashSet<Node> nbhd = neighbourTraversal(physicalEntity, 4, graphDb);
-                        nbhdSizeInt ++;
+                    HashSet<String> nbhdUids = new HashSet<>();
+                    HashSet<String> numUIDsMeasured = new HashSet<>();
 
-                        HashSet<String> nbhdUids = new HashSet<>();
+                    if(physicalEntity.hasLabel(Label.label("Protein")) | physicalEntity.hasLabel(Label.label("Complex"))) {
+                        HashSet<Node> nbhd = neighbourTraversal(physicalEntity, depth, graphDb);
+
+
                         // count the total neighbourhood size
                         // count number of measured things
                         for(Node node:nbhd){
-
-                            //count integrated
-                            if(node.hasProperty(PropertyType.INTEGRATED.toString())){
-                                numIntegrated++;
+                            if(node.hasLabel(Label.label("Protein")) | node.hasLabel(Label.label("Complex"))){
+                                nbhdSizeInt ++;
+                                //count integrated
+                                if(node.hasProperty(PropertyType.INTEGRATED.toString())){
+                                    numIntegrated++;
+                                }
                             }
-                            // count num unique uids in nbhd
-                            Iterable<Relationship> uidRels = node.getRelationships(RelTypes.ID_BELONGS_TO, Direction.INCOMING);
-                            if (getLength(uidRels) == 1){
+
+                            // get UID's from proteins and complexes in the network & count the # measured
+                            if(node.hasLabel(Label.label("Protein"))){
+                                Iterable<Relationship> uidRels = node.getRelationships(RelTypes.ID_BELONGS_TO, Direction.INCOMING);
                                 for(Relationship uidRel: uidRels){
                                     nbhdUids.add(uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString());
+                                    if(uidRel.getStartNode().hasProperty(PropertyType.MAPPED.toString())){
+                                        numUIDsMeasured.add(uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString());
+                                    }
                                 }
-                            }else{
-                                String uids = "";
-                                for(Relationship uidRel: uidRels){
-                                    uids = uids + uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString());
-                                }
-                                nbhdUids.add(uids);
                             }
-                            // count measured
+                            if( node.hasLabel(Label.label("Complex"))){
+                                String cplxUIDs = node.getProperty(PropertyType.UNIPROT_ID.toString()).toString();
+                                String[] split = cplxUIDs.split(",");
+                                for (String uid: split) {
+                                    Pattern p = Pattern.compile(UID_PATTERN);
+                                    Matcher m = p.matcher(uid);
+                                    if (m.find()) {
+                                        nbhdUids.add(m.group(0));
+
+                                       /* Node uidNode = graphDb.findNode(Label.label(LabelTypes.UNIPROT_ID.toString()), PropertyType.UNIPROT_ID.toString(), m.group(0));
+                                        if(uidNode.hasProperty(PropertyType.MAPPED.toString())){
+                                            numUIDsMeasured.add(uidNode.getProperty(PropertyType.UNIPROT_ID.toString()).toString());
+                                        }*/
+
+
+                                    }
+                                }
+                                if(node.hasProperty(PropertyType.MAPPED.toString())){
+                                    String mappedUIDs = node.getProperty(PropertyType.MAPPED.toString()).toString();
+                                    String[] split1 = mappedUIDs.split(",\\s");
+                                    for (String uid: split1){
+                                        numUIDsMeasured.add(uid);
+                                    }
+                                }
+                            }
+
+
+                            // count measured entities
                             if (node.hasProperty(PropertyType.SUPPORT_SCORE.toString())){
                                 if(Double.parseDouble(node.getProperty(PropertyType.SUPPORT_SCORE.toString()).toString()) > 0){
                                     nbhdMeasured ++;
                                 }
                                 nbhdSScores.add(Double.parseDouble(node.getProperty(PropertyType.SUPPORT_SCORE.toString()).toString()));
-                                nbhdAScores.add(Double.parseDouble(node.getProperty(PropertyType.ABUNDANCE_SCORE.toString()).toString()));
-
                             }
                         }
                         // add # measured per nbhd to hashmap
@@ -1810,23 +1836,31 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                             integers.add(nbhdMeasured);
                             numMapped.put(physicalEntity.getId(), integers);
                         }
+
+
                         nbhdSize.put(physicalEntity.getId(), nbhdSizeInt);
+
                         nbhdIntegrated.put(physicalEntity.getId(), numIntegrated);
 
-                        Double ssAvg = 0.0;
-                        Double asAvg = 0.0;
+                        numUIDs.put(physicalEntity.getId(), nbhdUids.size());
 
+                        numUIDsMapped.put(physicalEntity.getId(), numUIDsMeasured.size());
+
+                        // AVG & SUM & STDDEV
+                        Double ssAvg = 0.0;
+                        Double ssSum = 0.0;
                         for(Integer i = 0; i < nbhdSScores.size(); i++){
                             if(nbhdSScores.get(i) >= 0){
                                 ssAvg += nbhdSScores.get(i);
-                                asAvg += nbhdAScores.get(i);
+                                ssSum += nbhdSScores.get(i);
                             }
                         }
-
-                        ssAvg = ssAvg/nbhdSScores.size();
-                        asAvg = asAvg/nbhdSScores.size();
+                        if(!ssSum.equals(0.0)){
+                            ssAvg = ssAvg/nbhdSScores.size();
+                        }
 
                         // add avg SScore per nbhd to hashmap
+                        ssAvg = (Math.round(ssAvg*100.00))/100.00;
                         if(avgSScore.containsKey(physicalEntity.getId())){
                             ArrayList<Double> doubles = avgSScore.get(physicalEntity.getId());
                             doubles.add(ssAvg);
@@ -1835,6 +1869,17 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                             ArrayList<Double> doubles = new ArrayList<>();
                             doubles.add(ssAvg);
                             avgSScore.put(physicalEntity.getId(), doubles);
+                        }
+
+                        ssSum = (Math.round(ssSum*100.00))/100.00;
+                        if(sumSScore.containsKey(physicalEntity.getId())){
+                            ArrayList<Double> doubles = sumSScore.get(physicalEntity.getId());
+                            doubles.add(ssSum);
+                            sumSScore.put(physicalEntity.getId(), doubles);
+                        }else {
+                            ArrayList<Double> doubles = new ArrayList<>();
+                            doubles.add(ssSum);
+                            sumSScore.put(physicalEntity.getId(), doubles);
                         }
 
                         ////////////// gathering outputs
@@ -1857,6 +1902,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                             }
                         }
                         nbhd2UID.put(physicalEntity.getId(), uid);
+                        nbhd2DispName.put(physicalEntity.getId(), physicalEntity.getProperty(PropertyType.DISPLAY_NAME.toString()).toString());
                     }
                 }
 
@@ -1867,6 +1913,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                     protein.removeProperty(PropertyType.SUPPORT_SCORE.toString());
                     protein.removeProperty(PropertyType.ABUNDANCE_SCORE.toString());
                     protein.removeProperty(PropertyType.SCORED_BY.toString());
+                    protein.removeProperty(PropertyType.MAPPED.toString());
                 }
 
                 ResourceIterator<Node> complexs = graphDb.findNodes(Label.label("Complex"));
@@ -1875,19 +1922,34 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                     complex.removeProperty(PropertyType.SUPPORT_SCORE.toString());
                     complex.removeProperty(PropertyType.ABUNDANCE_SCORE.toString());
                     complex.removeProperty(PropertyType.SCORED_BY.toString());
+                    complex.removeProperty(PropertyType.MAPPED.toString());
                 }
 
                 tx.success();
             }
         }
 
+        // get Uniprot accesison, position,  Raw Peptide, log2 ratio
+        // clear file if already exits
+        FileWriter fstream0 = new FileWriter(outputFile + "/EmpiricalDist.tsv");
+        BufferedWriter out0 = new BufferedWriter(fstream0);
+        out0.write("nbhdBaseDBID\tnbhdBaseUID\tnumEntities\tNumIntegrated\numUIDs\tnumUIDsMapped\ttnbhdMeasured\tavgSScore\tsumSScore\n" );
+        out0.close();
+        //Create File to write inputs/Outputs to
+        FileWriter fstream = new FileWriter(outputFile + "/EmpiricalDist.tsv", true);
+        BufferedWriter out = new BufferedWriter(fstream);
+
         for (Long nbhd: numMapped.keySet()) {
             out.write(nbhd +"\t"
                     + nbhd2UID.get(nbhd)
+                    +"\t" + nbhd2DispName.get(nbhd)
                     +"\t" + nbhdSize.get(nbhd)
+                    +"\t" + nbhdIntegrated.get(nbhd)
+                    +"\t" + numUIDs.get(nbhd)
+                    +"\t" + numUIDsMapped.get(nbhd)
                     +"\t" + numMapped.get(nbhd)
                     +"\t" + avgSScore.get(nbhd)
-                    +"\t" + nbhdIntegrated.get(nbhd)
+                    +"\t" + sumSScore.get(nbhd)
                     +"\n");
 
         }
@@ -1929,6 +1991,8 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                 } else {
                     UIDsMatched ++;
                     pepsMatched += PeptideIDs.size();
+
+                    UID.setProperty(PropertyType.MAPPED.toString(), "Mapped");
 
                     // GET UID
                     Iterable<Relationship> protRelationships = UID.getRelationships(RelTypes.ID_BELONGS_TO);
@@ -2123,8 +2187,170 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
             }
 
             tx.success();
-            mapComplexs(graphDb, "SUPPORT_SCORE", "ABUNDANCE_SCORE",  "SCORED_BY");
+            mapComplexs(graphDb, "SUPPORT_SCORE", "ABUNDANCE_SCORE",  "SCORED_BY", "MAPPED");
 
+        }
+
+    }
+
+    void nbhdAnalysis(Integer depth, String experiment) throws IOException {
+
+        File databaseDir = getDatabaseDir();
+        File outputFile = getOutputFile();
+        GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(databaseDir);
+
+        // reset scores
+        try (Transaction tx = graphDb.beginTx()) {
+
+            // get all labels and find one that matches the experiment
+            Boolean experimentLabel = true;
+            String supportScoreString = "";
+            HashSet<String> experiments = new HashSet<>();
+            ResourceIterable<String> allPropertyKeys = graphDb.getAllPropertyKeys();
+            for (String property: allPropertyKeys){
+                if(property.replace("SUPPORT_SCORE_", "").equalsIgnoreCase(experiment)){ // if experiment name is in properties
+                    experimentLabel = false; // dont throw error
+                    supportScoreString = property;
+                }else if (property.contains("SUPPORT_SCORE_")){ // gather experiment names in db
+                    String support_score_ = property.replace("SUPPORT_SCORE_", "");
+                    experiments.add(support_score_);
+                }
+            }
+            // throw exception if experiment name given is not in the database
+            if(experimentLabel){
+                throw new InputException(experiment + " is not currently in this database: " + databaseDir +
+                        "\nExperiments in this database are: " + experiments);
+            }
+
+            // if we get this far the experiment is in the db
+            String scoredByString = "SCORED_BY_" + experiment;
+            String mappedString = "MAPPED_" + experiment;
+
+            FileWriter fstream0 = new FileWriter(outputFile + "/NeighbourhoodAnalysis_" + experiment + ".tsv");
+            BufferedWriter out0 = new BufferedWriter(fstream0);
+            out0.write("nbhdBaseDBID\tnbhdBaseUID\tnbhdSize\tnumUIDs\tNumIntegrated\tnbhdMeasured\tavgSScore\tsumSScore\n");
+            out0.close();
+            //Create File to write inputs/Outputs to
+            FileWriter fstream = new FileWriter(outputFile + "/NeighbourhoodAnalysis_" + experiment + ".tsv", true);
+            BufferedWriter out = new BufferedWriter(fstream);
+
+            // generate neighbourhoods and count stuff
+
+            ResourceIterator<Node> allPeNodes = graphDb.findNodes(Label.label(LabelTypes.PHYSICAL_ENTITY.toString()));
+            for (ResourceIterator<Node> it = allPeNodes; it.hasNext(); ) {
+                Node physicalEntity = it.next();
+                // if pe is measured - gen nbhd
+                ArrayList<Double> nbhdSScores = new ArrayList<>();
+                Integer nbhdSizeInt = 0;
+                Integer nbhdMeasured = 0;
+                Integer numIntegrated = 0;
+                HashSet<String> nbhdUids = new HashSet<>();
+                HashSet<String> numUIDsMeasured = new HashSet<>();
+                if(physicalEntity.hasLabel(Label.label("Protein")) | physicalEntity.hasLabel(Label.label("Complex"))) {
+                    HashSet<Node> nbhd = neighbourTraversal(physicalEntity, depth, graphDb);
+
+
+                    // count the total neighbourhood size
+                    // count number of measured things
+                    for (Node node : nbhd) {
+                        if (node.hasLabel(Label.label("Protein")) | node.hasLabel(Label.label("Complex"))) {
+                            nbhdSizeInt++;
+                            //count integrated
+                            if (node.hasProperty(PropertyType.INTEGRATED.toString())) {
+                                numIntegrated++;
+                            }
+                        }
+
+                        // get UID's from proteins and complexes in the network & count the # measured
+                        if(node.hasLabel(Label.label("Protein"))){
+                            Iterable<Relationship> uidRels = node.getRelationships(RelTypes.ID_BELONGS_TO, Direction.INCOMING);
+                            for(Relationship uidRel: uidRels){
+                                nbhdUids.add(uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString());
+                                if(uidRel.getStartNode().hasProperty(mappedString)){
+                                    numUIDsMeasured.add(uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString());
+                                }
+                            }
+                        }
+                        if( node.hasLabel(Label.label("Complex"))){
+                            String cplxUIDs = node.getProperty(PropertyType.UNIPROT_ID.toString()).toString();
+                            String[] split = cplxUIDs.split(",");
+                            for (String uid: split) {
+                                Pattern p = Pattern.compile(UID_PATTERN);
+                                Matcher m = p.matcher(uid);
+                                if (m.find()) {
+                                    nbhdUids.add(m.group(0));
+
+                                    Node uidNode = graphDb.findNode(Label.label(LabelTypes.UNIPROT_ID.toString()), PropertyType.UNIPROT_ID.toString(), m.group(0));
+                                    if(uidNode.hasProperty(mappedString)){
+                                        numUIDsMeasured.add(uidNode.getProperty(PropertyType.UNIPROT_ID.toString()).toString());
+                                    }
+                                }
+                            }
+                        }
+
+                        // count measured
+                        if (node.hasProperty(supportScoreString)) {
+                            if (Double.parseDouble(node.getProperty(supportScoreString).toString()) > 0) {
+                                nbhdMeasured++;
+                            }
+                            nbhdSScores.add(Double.parseDouble(node.getProperty(supportScoreString).toString()));
+                        }
+                    }
+
+                    // AVG & SUM & STDDEV
+                    Double ssAvg = 0.0;
+                    Double ssSum = 0.0;
+                    for (Integer i = 0; i < nbhdSScores.size(); i++) {
+                        if (nbhdSScores.get(i) >= 0) {
+                            ssAvg += nbhdSScores.get(i);
+                            ssSum += nbhdSScores.get(i);
+                        }
+                    }
+                    if (!ssSum.equals(0.0)) {
+                        ssAvg = ssAvg / nbhdSScores.size();
+                    }
+
+
+
+                    ////////////// gathering outputs
+                    String uid = "";
+
+                    if (physicalEntity.hasProperty(scoredByString)) {
+                        uid = physicalEntity.getProperty(scoredByString).toString();
+                    } else if (physicalEntity.hasProperty(PropertyType.UNIPROT_ID.toString())) {
+                        uid = physicalEntity.getProperty(PropertyType.UNIPROT_ID.toString()).toString();
+                    } else {
+                        Iterable<Relationship> uidRels = physicalEntity.getRelationships(RelTypes.ID_BELONGS_TO, Direction.INCOMING);
+                        if (getLength(uidRels) == 1) {
+                            for (Relationship uidRel : uidRels) {
+                                uid = uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString();
+                            }
+                        } else {
+                            for (Relationship uidRel : uidRels) {
+                                uid = uid + uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString() + ", ";
+                            }
+                        }
+                    }
+
+
+
+
+                    out.write(physicalEntity.getId() + "\t"
+                            + uid
+                            + "\t" + physicalEntity.getProperty(PropertyType.DISPLAY_NAME.toString())
+                            + "\tnumMappable: " + nbhdSizeInt
+                            + "\tnumUIDs: " + nbhdUids.size()
+                            + "\tnumUIDsMapped: " + numUIDsMeasured.size()
+                            + "\tnumIntegrated: " + numIntegrated
+                            + "\t" + nbhdMeasured
+                            + "\t" + ssAvg
+                            + "\t" + ssSum
+                            + "\n");
+                }
+
+            }
+            tx.success();
+            out.close();
         }
 
     }
@@ -2133,245 +2359,6 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // dont know what to do with these
-
-    /**
-     * Will find the neighbourhood of every measured node in the database and print out it's pval
-     * @param depth
-     */
-    public void chiSquareNeighbourhood(Integer depth) throws IOException {
-        File databaseDir = getDatabaseDir();
-        File outputFile = getOutputFile();
-        GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(databaseDir);
-
-        FileWriter fstream = new FileWriter(outputFile + "/ChiSquareNeighbourhoods.tsv");
-        BufferedWriter nbhdOut = new BufferedWriter(fstream);
-        nbhdOut.write("ID\tDispName\tUID\tPval\tAvgSScore\tAvgAScore\tNumInNbhd\tNumIntegrated\tNumUIDsInNBHD\ta\tb\tc\td\n");
-
-        try(Transaction tx = graphDb.beginTx()){
-
-            ArrayList<Double> nbhdSScores = new ArrayList<>();
-            ArrayList<Double> nbhdAScores = new ArrayList<>();
-
-            long c_final = 0;
-            long d_final = 0;
-            ResourceIterator<Node> allProteins = graphDb.findNodes(Label.label("Protein"));
-            for (ResourceIterator<Node> it = allProteins; it.hasNext(); ) {
-                Node otherProteins = it.next();
-                if(otherProteins.hasProperty(PropertyType.SUPPORT_SCORE.toString())
-                        & Double.parseDouble(otherProteins.getProperty(PropertyType.SUPPORT_SCORE.toString()).toString()) > 0){
-                    c_final ++;
-                }else{
-                    d_final ++;
-                }
-            }
-
-            ResourceIterator<Node> proteins = graphDb.findNodes(Label.label("Protein"));
-            for (ResourceIterator<Node> it = proteins; it.hasNext(); ) {
-                Node protein = it.next();
-
-                if(Double.parseDouble(protein.getProperty(PropertyType.SUPPORT_SCORE.toString()).toString()) >= 0){
-                    HashSet<Node> nbhd = neighbourTraversal(protein, depth, graphDb);
-                    HashSet<String> nbhdUids = new HashSet<>();
-
-                    long a = 0;
-                    long b = 0;
-                    long c = c_final;
-                    long d = d_final;
-
-                    int numIntegrated = 0;
-                    for (Node inNbhd: nbhd){
-                        // calc # measure & nor measured things in path
-                        if (inNbhd.hasProperty(PropertyType.SUPPORT_SCORE.toString())){
-                            if( Double.parseDouble(inNbhd.getProperty(PropertyType.SUPPORT_SCORE.toString()).toString()) > 0){
-                                a ++;
-                            }else{
-                                b ++;
-                            }
-                            nbhdSScores.add(Double.parseDouble(inNbhd.getProperty(PropertyType.SUPPORT_SCORE.toString()).toString()));
-                            nbhdAScores.add(Double.parseDouble(inNbhd.getProperty(PropertyType.ABUNDANCE_SCORE.toString()).toString()));
-                        }
-                        if(inNbhd.hasProperty(PropertyType.INTEGRATED.toString())){
-                            numIntegrated++;
-                        }
-
-                        // count num unique uids in nbhd
-                        Iterable<Relationship> uidRels = inNbhd.getRelationships(RelTypes.ID_BELONGS_TO, Direction.INCOMING);
-                        if (getLength(uidRels) == 1){
-                            for(Relationship uidRel: uidRels){
-                                nbhdUids.add(uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString());
-                            }
-                        }else{
-                            String uids = "";
-                            for(Relationship uidRel: uidRels){
-                                uids = uids + uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString().toString());
-                            }
-                            nbhdUids.add(uids);
-                        }
-                    }
-                    c -=a;
-                    d-=b;
-
-                    long[][] chs = {
-                            {a,b},
-                            {c,d}};
-
-                    ChiSquareTest t = new ChiSquareTest();
-                    double pVal = t.chiSquareTest(chs);
-
-                    String uid = "";
-                    Iterable<Relationship> uidRels = protein.getRelationships(RelTypes.ID_BELONGS_TO, Direction.INCOMING);
-                    if(getLength(uidRels) == 1){
-                        for(Relationship uidRel: uidRels){
-                            uid = uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString();
-                        }
-                    }else{
-                        for(Relationship uidRel: uidRels){
-                            uid = uid + uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString() + ",";
-                        }
-                    }
-
-                    Double ssAvg = 0.0;
-                    Double asAvg = 0.0;
-
-                    for(Integer i = 0; i < nbhdSScores.size(); i++){
-                        ssAvg += nbhdSScores.get(i);
-                        asAvg += nbhdAScores.get(i);
-                    }
-
-                    ssAvg = ssAvg/nbhdSScores.size();
-                    asAvg = asAvg/nbhdSScores.size();
-
-
-                    nbhdOut.write(protein.getId()+"\t"+
-                            protein.getProperty(PropertyType.DISPLAY_NAME.toString())+"\t"+
-                            uid +"\t"+
-                            pVal+"\t"+
-                            ssAvg+"\t"+
-                            asAvg + "\t"+
-                            nbhd.size()+"\t"+
-                            numIntegrated+ "\t"+
-                            nbhdUids.size()+ "\t"+
-                            a + "\t"+
-                            b + "\t"+
-                            c + "\t"+
-                            d+ "\n"
-                    );
-                }
-
-            }
-            tx.success();
-        }
-        nbhdOut.close();
-        graphDb.shutdown();
-
-    }
-    public void chiSquarePathways() throws IOException{
-        File databaseDir = getDatabaseDir();
-        File outputFile = getOutputFile();
-        GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(databaseDir);
-
-        FileWriter fstream1 = new FileWriter(outputFile + "/ChiSquarePaths.tsv");
-        BufferedWriter pthOut = new BufferedWriter(fstream1);
-        pthOut.write("ID\tPathName\tPval\tNumInPath\tNumIntegrated\tNumUIDsInPath\ta\tb\tc\td\n");
-
-        try(Transaction tx = graphDb.beginTx()){
-
-            // get numbers
-            // c = number measured proteins in database
-            // d = number of proteins in database
-            long c_final = 0;
-            long d_final = 0;
-            ResourceIterator<Node> allProteins = graphDb.findNodes(Label.label("Protein"));
-            for (ResourceIterator<Node> it = allProteins; it.hasNext(); ) {
-                Node otherProteins = it.next();
-                if(otherProteins.hasProperty(PropertyType.SUPPORT_SCORE.toString())
-                        & Double.parseDouble(otherProteins.getProperty(PropertyType.SUPPORT_SCORE.toString()).toString()) > 0){
-                    c_final ++;
-                }else{
-                    d_final ++;
-                }
-            }
-
-            ResourceIterator<Node> paths = graphDb.findNodes(Label.label(LabelTypes.PATHWAY.toString()));
-            for (ResourceIterator<Node> it = paths; it.hasNext(); ) {
-                Node path = it.next();
-
-                HashSet<Node> pathSet = new HashSet<>();
-                Iterable<Relationship> pathComponentRels = path.getRelationships(RelTypes.PATHWAY_COMPONENT);
-                for(Relationship pathComponentRel: pathComponentRels){
-                    Node pathComponent = pathComponentRel.getEndNode();
-                    if(pathComponent.hasLabel(Label.label("Protein"))){
-                        pathSet.add(pathComponent);
-                    }
-                }
-
-                HashSet<String> nbhdUids = new HashSet<>();
-
-                long a = 0;
-                long b = 0;
-                long c = c_final;
-                long d = d_final;
-
-                int numIntegrated = 0;
-                for (Node inPath: pathSet){
-                    // calc # measure & nor measured things in path
-                    if (inPath.hasProperty(PropertyType.SUPPORT_SCORE.toString())
-                            & Double.parseDouble(inPath.getProperty(PropertyType.SUPPORT_SCORE.toString()).toString()) > 0){
-                        a ++;
-                    }else{
-                        b ++;
-                    }
-                    if(inPath.hasProperty(PropertyType.INTEGRATED.toString())){
-                        numIntegrated++;
-                    }
-
-                    // count num unique uids in path
-                    Iterable<Relationship> uidRels = inPath.getRelationships(RelTypes.ID_BELONGS_TO, Direction.INCOMING);
-                    if (getLength(uidRels) == 1){
-                        for(Relationship uidRel: uidRels){
-                            nbhdUids.add(uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString());
-                        }
-                    }else{
-                        String uids = "";
-                        for(Relationship uidRel: uidRels){
-                            uids = uids + uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString().toString());
-                        }
-                        nbhdUids.add(uids);
-                    }
-                }
-                c -=a;
-                d-=b;
-
-                long[][] chs = {
-                        {a,b},
-                        {c,d}};
-
-                ChiSquareTest t = new ChiSquareTest();
-                double pVal = t.chiSquareTest(chs);
-
-
-                pthOut.write(path.getId()+"\t"+
-                        path.getProperty(PropertyType.DISPLAY_NAME.toString())+"\t"+
-                        pVal+"\t"+
-                        pathSet.size()+"\t"+
-                        numIntegrated+ "\t"+
-                        nbhdUids.size()+ "\t"+
-                        a + "\t"+
-                        b + "\t"+
-                        c + "\t"+
-                        d+ "\n"
-                );
-
-
-            }
-            tx.success();
-        }
-        pthOut.close();
-        graphDb.shutdown();
-
-    }
-    ////////////////////////////
 
     // getNeighbours gets neighbourhoods for specific porteins or files of proteins
 

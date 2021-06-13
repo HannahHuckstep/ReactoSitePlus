@@ -568,6 +568,7 @@ Protein_ID modified_peptide log2Int Time
             String supportScoreString = "SUPPORT_SCORE_" + exprName;
             String abundanceScoreString = "ABUNDANCE_SCORE_" + exprName;
             String scoredByString = "SCORED_BY" + exprName;
+            String mappedString = "MAPPED_" + exprName;
 
             Double maxAbundance = Double.NEGATIVE_INFINITY;
             Double minAbundance = Double.POSITIVE_INFINITY;
@@ -667,10 +668,11 @@ Protein_ID modified_peptide log2Int Time
                         UIDsMatched ++;
                         pepsMatched += PeptideIDs.size();
 
+                        UID.setProperty(mappedString, "Mapped");
+
                         // GET UID
                         Iterable<Relationship> protRelationships = UID.getRelationships(RelTypes.ID_BELONGS_TO);
 
-                        Integer count = 0;
                         HashSet<String> UIDmodList = new HashSet<>();
                         HashMap<Integer, String> uidModList = new HashMap<>();
 
@@ -881,7 +883,7 @@ Protein_ID modified_peptide log2Int Time
                 tx.success();
             }
 
-            mapComplexs(graphDb, supportScoreString, abundanceScoreString,  scoredByString);
+            mapComplexs(graphDb, supportScoreString, abundanceScoreString,  scoredByString, mappedString);
             addRelWeights(graphDb, supportScoreString, maxAbundance, minAbundance);
             mappingReport(out2, graphDb, supportScoreString, out1, pathSets);
             out2.close();
@@ -1675,13 +1677,14 @@ Protein_ID modified_peptide log2Int Time
      * @param abundanceScoreString
      * @param scoredByString
      */
-     void mapComplexs(GraphDatabaseService graphDb, String supportScoreString, String abundanceScoreString, String scoredByString){
+     void mapComplexs(GraphDatabaseService graphDb, String supportScoreString, String abundanceScoreString, String scoredByString, String mappedString){
 
         try (Transaction tx = graphDb.beginTx()) {
 
             ResourceIterator<Node> complexes = graphDb.findNodes(Label.label("Complex"));
             for (ResourceIterator<Node> it = complexes; it.hasNext(); ) {
                 Node cplx = it.next();
+                String mappedUIDs = "";
                 HashSet<Node> components = new HashSet<>();
                 HashSet<Node> nodes = recurseComponents(graphDb, cplx, components);
                 String scoringUIDs = "";
@@ -1698,8 +1701,16 @@ Protein_ID modified_peptide log2Int Time
                 for(Node component: nodes){
                     if(component.hasProperty(supportScoreString)){
                         scoredComplex = true;
+                        Iterable<Relationship> compUIDRels = component.getRelationships(RelTypes.ID_BELONGS_TO);
+                        for (Relationship compUIDRel: compUIDRels) {
+                            Node uid = compUIDRel.getStartNode();
+                            if (uid.hasProperty(mappedString)){
+                                mappedUIDs = mappedUIDs.concat(uid.getProperty(PropertyType.UNIPROT_ID.toString()).toString()+ ", ");
+                            }
+                        }
                     }
                 }
+
 
                 if(scoredComplex){
                     for(Node component: nodes){
@@ -1726,6 +1737,7 @@ Protein_ID modified_peptide log2Int Time
 
                     cplx.setProperty(supportScoreString, (Math.round(sScore*1000d))/1000d);
                     cplx.setProperty(abundanceScoreString, (Math.round(eScore*1000d))/1000d);
+                    cplx.setProperty(mappedString, mappedUIDs);
                 }
             }
 

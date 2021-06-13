@@ -40,6 +40,7 @@ public class Main {
                         "                    \"MapPeptides\", takes an input database [-idb] and an output path [-op], a file to map onto the database [-idf], and the optional Abundance Score mapping method preferred [-as] (\"HighestSupport\" is defalut)\n" +
                         "                    \"IntegratePSP\", takes in input Reactome database [-idb], takes the PSP database [-psp], and an output path [-op]\n" +
                         "                    \"BinomialNeighbourhoodAnalysis\", takes in a measured input database [-idb], an output path [-op], and the depth of the traversal [-d]\n"+
+                        "                    \"NeighbourhoodAnalysis\", takes in a measured input database [-idb], an output path [-op], the depth of the traversal [-d], and the experiment name of interest [-en]\n"+
                         "                    \"ShortestPath\", takes in a measured input database [-idb], an output path [-op], a starting node id [-sid], a ending node id [-eid], the experiment name of interest [-en], and the weight type to be traversed [-ew] (can be either \"Abundance\" (a) or \"Support\" (s))\n"+
                         "                    \"MinimalConnectionNetwork\", takes in a measured input database [-idb], an output path [-op], and the edge weights to be traverserd [-ew] (can be \"Abundance\" or \"Support\")\n"+
                         "                    \"TraversalAnalysis\", takes in a measured input database [-idb], an output path [-op], a UniProt ID or database ID to look downstream of [-p], the direction of the traversal [-dir], and the experiment name of interest [-en]\n" +
@@ -48,7 +49,7 @@ public class Main {
                                 "\nqPhosMap \t [idb][op][idf][en]" +
                                 "\nqPhosNbhd" +
                                 "\nqPhosMCN \t [idb][op][en]" +
-                                "\nqPhosED \t [idb][op][idf][ss][rn]"+
+                                "\nqPhosED \t [idb][op][idf][d][ss][rn]"+
                         "\n"
 
                         )
@@ -61,6 +62,7 @@ public class Main {
                         "MapPeptides", //done
                         "IntegratePSP", //done
                         "BinomialNeighbourhoodAnalysis", //done
+                        "NeighbourhoodAnalysis",
                         "DownstreamAnalysis", //done
                         "UpstreamAnalysis", //done
                         "ShortestPath", //done
@@ -315,6 +317,31 @@ public class Main {
                     mdb.binomialNeighbourhood(d);
                 }
             }
+            else if(mode.equalsIgnoreCase("NeighbourhoodAnalysis")) {
+                if (ns.getAttrs().get("input_db") == null) {
+                    throw new NullPointerException("Missing the input: database directory");
+                } else if(ns.getAttrs().get("output_path") == null){
+                    throw new NullPointerException("Missing output path to write to");
+                } else if(ns.getAttrs().get("depth") == null) {
+                    throw new NullPointerException("Missing depth parameter for neighbourhood traversal");
+                }else if(ns.getAttrs().get("experiment") == null) {
+                    throw new NullPointerException("Missing experiment parameter for network traversal");
+                }else{
+                    File input_db = new File(ns.get("input_db").toString());
+                    File output_path = new File(ns.get("output_path").toString());
+                    String expt = ns.getString("experiment");
+                    String depth = ns.getString("depth");
+                    Integer d = 0;
+                    try{
+                        d = Integer.valueOf(depth);
+                    }catch (NumberFormatException e){
+                        System.out.println("Depth must be an integer");
+                    }
+
+                    MeasuredDatabase mdb = new MeasuredDatabase(input_db, output_path);
+                    mdb.nbhdAnalysis(d, expt);
+                }
+            }
             else if(mode.equalsIgnoreCase("TraversalAnalysis") ) {
                 if (ns.getAttrs().get("input_db") == null) {
                     throw new NullPointerException("Missing the input: database directory");
@@ -423,16 +450,23 @@ public class Main {
 
             }
             else if(mode.equalsIgnoreCase("qPhosED")  ) {
-                // [idb][op][idf][ss][rn]
+                // [idb][op][idf][d][ss][rn]
                 File input_db = new File(ns.get("input_db").toString());
                 File output_path = new File(ns.get("output_path").toString());
                 File data_file = new File(ns.get("input_data_file").toString());
                 String subsetSize = ns.getString("subset_size");
                 String repetitionNum = ns.getString("repetition_num");
+                String depth = ns.getString("depth");
+                Integer d = 0;
+                try{
+                    d = Integer.valueOf(depth);
+                }catch (NumberFormatException e){
+                    System.out.println("Depth must be an integer");
+                }
                 Integer ss = Integer.valueOf(subsetSize);
                 Integer rn = Integer.valueOf(repetitionNum);
                 MeasuredDatabase mdb = new MeasuredDatabase(input_db, output_path);
-                mdb.empiricalNullDistribution(data_file, ss, rn);
+                mdb.empiricalNullDistribution(data_file,d, ss, rn);
             }
             /////////////////////////////////////////////////////////////////////////////////
             else{

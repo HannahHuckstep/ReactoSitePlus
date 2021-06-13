@@ -17,5 +17,6 @@ public enum PropertyType {
     KINASE,
     TRANSCRIPTION_FACTOR,
     CELL_SURFACE_RECEPTOR,
-    UNIPROT_NAME
+    UNIPROT_NAME,
+    MAPPED
 }

@@ -272,6 +272,7 @@ public class qPhosDatabase extends MeasuredDatabase{
             String supportScoreString = "SUPPORT_SCORE_" + exprName;
             String abundanceScoreString = "ABUNDANCE_SCORE_" + exprName;
             String scoredByString = "SCORED_BY" + exprName;
+            String mappedString = "MAPPED" + exprName;
 
             Double maxAbundance = Double.NEGATIVE_INFINITY;
             Double minAbundance = Double.POSITIVE_INFINITY;
@@ -562,7 +563,7 @@ public class qPhosDatabase extends MeasuredDatabase{
 
                 tx.success();
             }
-            mapComplexs(graphDb, supportScoreString, abundanceScoreString, scoredByString);
+            mapComplexs(graphDb, supportScoreString, abundanceScoreString, scoredByString,mappedString);
             addRelWeights(graphDb, supportScoreString, maxAbundance, minAbundance);
 
             mappingReport(out, graphDb, supportScoreString, minAbundance, maxAbundance);
@@ -676,6 +677,7 @@ public class qPhosDatabase extends MeasuredDatabase{
             String supportScoreString = "SUPPORT_SCORE_" + exprName;
             String abundanceScoreString = "ABUNDANCE_SCORE_" + exprName;
             String scoredByString = "SCORED_BY" + exprName;
+            String mappedString = "MAPPED" + exprName;
 
             Double maxAbundance = Double.NEGATIVE_INFINITY;
             Double minAbundance = Double.POSITIVE_INFINITY;
@@ -966,7 +968,7 @@ public class qPhosDatabase extends MeasuredDatabase{
 
                 tx.success();
             }
-            mapComplexs(graphDb, supportScoreString, abundanceScoreString, scoredByString);
+            mapComplexs(graphDb, supportScoreString, abundanceScoreString, scoredByString, mappedString);
             addRelWeights(graphDb, supportScoreString, maxAbundance, minAbundance);
 
         }// expr for loop
