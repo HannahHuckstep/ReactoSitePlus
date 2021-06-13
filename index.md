@@ -28,8 +28,10 @@ When the confidence score is mapped, the abundance score is mapped simultaneousl
 ## Dependencies 
 * Java 7
 * R
-  * ggplot 
-  * ... 
+  * ggplot2 
+  * dplyr
+  * viridis
+  * ggExtra 
 
 ## Setting up 
 
@@ -148,14 +150,13 @@ After the database is mapped to you can write it to a Simple Interaction Format 
 Which we would read as the node with the id ```21``` is an ```INPUT``` to the reaction node with the id ```20```, or the node with the id ```23``` is a ```PHOSPHORYLATION``` on the node ```21```.
 
 The attribute file will contain all attributes associated with each node. An example of an attribute file looks like: 
-
-Node_ID | Database_ID | Display_Name | Type | Database_Link | Location | Status | Kinase | Transcription_Factor | Cell_Surface_Receptor | UniProt_Gene_Name | Integrated | ABUNDANCE_SCORE_wt | SUPPORT_SCORE_wt | ABUNDANCE_SCORE_stim | SUPPORT_SCORE_stim
---------|-------------|--------------|------|---------------|----------|--------|--------|----------------------|-----------------------|-------------------|------------|--------------------|------------------|----------------------|-------------------
-21 | Protein2090 | p-S568-MLXIPL | Protein | http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-163687.1 | nucleoplasm | | | TRANSCRIPTION_FACTOR | | MLXIPL | | 3.2 | 0.9 | -1.5 | 0.5
-24 | SmallMolecule848 | Pi | SmallMolecule | http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-ALL-113550.4 | nucleoplasm | | | | | | | | | | 
-20 | BiochemicalReaction1310 | [Dephosphorylation of pChREBP (Ser 568) by PP2A] | BiochemicalReaction | http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-164056.2 | | | | | | | | | | | 
-23 | Protein2090_p-S_568 | p-S_568 | p_S | | 568 | | | | | | | | | | | 
-
+```
+Node_ID Database_ID Display_Name Type Database_Link Location Status Kinase Transcription_Factor Cell_Surface_Receptor UniProt_Gene_Name Integrated ABUNDANCE_SCORE_wt SUPPORT_SCORE_wt ABUNDANCE_SCORE_stim SUPPORT_SCORE_stim
+21 Protein2090 p-S568-MLXIPL Protein http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-163687.1 nucleoplasm   TRANSCRIPTION_FACTOR  MLXIPL  3.2 0.9 -1.5 0.5
+24 SmallMolecule848 Pi SmallMolecule http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-ALL-113550.4 nucleoplasm           
+20 BiochemicalReaction1310 [Dephosphorylation of pChREBP (Ser 568) by PP2A] BiochemicalReaction http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-164056.2
+23 Protein2090_p-S_568 p-S_568 p_S 568
+```
 
 Where the attributes are associated with the node ids found in the SIF file. The first line contains all of the attributes that are found in that database.
 
@@ -241,19 +242,38 @@ Now that the network has the data mapped to it, there are a number of ways to an
 
 ### Traversal Analysis 
 
-With this function we can look at everything downstream of a protein of interest. 
+With this function we can look at everything downstream or upstream of a protein of interest. 
 
-Using the example data from earlier these are the function inputs: 
+TraversalAnalysis, takes in a measured input database [-idb], an output path [-op], a UniProt ID or database ID to look downstream of [-p], the direction of the traversal [-dir], and the experiment name of interest [-en]. Using the example data from earlier these are the function inputs for an analysis looking downstream of protein X (UniProt ID): 
 
-We can look at the report:
+```
+java -jar jars/ReactoSitePlus.jar -m TraversalAnalysis -idb ./path/to/graph/ -op ./path/to/output/ -p UniProtID -dir downstream -en stim
+```
 
-We can look at the downstream networks in cytoscape: 
+We can look at the resulting report titled "TraversalReport_downstream_P42227.tsv":
+
+[screenshot]
+
+We see here that this UniProt ID has multiple proteoforms attached to it. Each may be in a different cellular location or have a different profile of modifications. The there a number of statistics reported for the downstream network of each proteoform and are ordered from largest to smallest (in reference to downstream network size). The first line is the variable names that can refer to that particular proteoform, next is the number of nodes found downstream of this proteoform. This statistic includes biochemical reaction nodes, gene nodes etc., as well as nodes that are mappable (proteins and complexes). The remaining statistics are self explanitory. 
+
+We can look at the downstream networks in cytoscape by loading the file titled "P42227_downstream.tsv":
+
+[screenshots]
+
+Once this is downloaded into cytoscape we can filter the network to display the downstream networks of each proteoform. 
+
+[screenshots]
+
+If you're only interested in the downstream network of a specific node, it is also possible to specify a node ID (any node type). 
 
 ### Neighbourhood Analysis
 
-With this function we can prioritize neighbourhoods of signalling.
+With this function we can prioritize neighbourhoods of signalling. In order to prioritize important neighbourhoods, the Empirical False Discovery rate was determined for each mapped neighbourhood. Pre-calculated distributions have been calculated for each neighbourhood of varying sizes in which you can compare your mapped data to. As explained above, qPhos is a database holding 554 different phosphoproteomic experiments accross 137 human cell lines. qPhos was sampled from used to ... ???? bootstrap ? something something.
 
 Using the example data from earlier these are the function inputs: 
+```
+java -jar jars/ReactoSitePlus.jar -m NeighbourhoodAnalysis
+```
 
 We can look at the report:
 
@@ -261,13 +281,23 @@ We can visualize relative statistics in R:
 
 ### Shortest Path 
 
-With this function you can look for the shortest path between 2 proteins. 
+With this function you can look for the shortest path in the network between 2 proteins of interest. 
 
-Using the example data from earlier these are the function inputs: 
+ShortestPath takes in a measured input database [-idb], an output path [-op], a starting node id [-sid], a ending node id [-eid], the experiment name of interest [-en], and the weight type to be traversed [-ew] (can be either "Abundance" (a) or "Support" (s)). Using the example data from earlier we can look at the shortest path between the protein X (UniProt ID X) and Y (UniProt ID Y):
 
-We can look at the report:
+```
+java -jar jars/ReactoSitePlus.jar -m ShortestPath -idb ./path/to/graph/ -op ./path/to/output/ -sid X -eid Y -en stim -ew a
+```
 
-We can visualize in cytoscape: 
+We can look at the report titled "ShortestPath_Q9R1E0_to_Q38HM4.tsv":
+
+[screenshots]
+
+This function will report the shortest path between the 2 nodes in every experiment currently mapped on your database. The first line determines if the end node is up- or downstream of the starting node. Next a number of statistics are given. Finally, the path is shown with each node id and the total path weight, followed by the same path but with node names and the weight of each edge beside the reaction nodes.  
+
+We can visualize in cytoscape by loading the file "Q9R1E0_to_Q38HM4_downstream.tsv	":
+
+[screenshots]
 
 ### Minimal Connection Network 
 
@@ -296,3 +326,15 @@ To create an embedded integrated database, first download the latest OWL files f
 5. Once the Reactome graph is built, you can integrate with PhosphoSitePlus with the 'IntegratePSP' mode. 
     * e.g., ``` java -jar ./path/to/jars/ReactoSitePlus.jar -m IntegratePSP -idb ./path/to/Reactome/Graph/ -op ./path/for/integration/report/output/ -iof ./path/to/PSP.owl```
     * **One key thing to remember is that the orgininal Reactome database that is input into this function is modified and becomes the integrated database.**
+
+## Other Helpful Functions 
+* AmountWithLabel
+* PrintDatabase
+* WriteAllUIDs
+* WritePhos
+* GetSpecies
+* ResetScores
+* PrintAllProperties
+* qPhosED
+
+
