@@ -1711,7 +1711,6 @@ Protein_ID modified_peptide log2Int Time
                     }
                 }
 
-
                 if(scoredComplex){
                     for(Node component: nodes){
                         if (component.hasProperty(supportScoreString)){ // if its a scored prt

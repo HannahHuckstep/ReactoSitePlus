@@ -875,6 +875,11 @@ class MeasuredDatabaseTest {
     }
 
     @Test
+    void TraverseNonProtNodeID(){
+
+    }
+
+    @Test
     void nbhdStats(){
         File tempOutputDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/");
         File tempGraphDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/GRAPH/");
@@ -906,7 +911,7 @@ class MeasuredDatabaseTest {
         MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir, tempOutputDir);
 
         try {
-            mdb.empiricalNullDistribution(qPhosFile, 10, 10);
+            mdb.empiricalNullDistribution(qPhosFile, 4,10, 10);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -965,7 +970,7 @@ class MeasuredDatabaseTest {
 
         MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir, tempOutputDir);
         try {
-            mdb.empiricalNullDistribution(miniDataFile, 1000, 3);
+            mdb.empiricalNullDistribution(miniDataFile, 4, 1000, 3);
         } catch (IOException e) {
             e.printStackTrace();
         }

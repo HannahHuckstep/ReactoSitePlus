@@ -15,6 +15,7 @@ import org.neo4j.graphdb.traversal.*;
 import org.neo4j.unsafe.impl.batchimport.input.InputException;
 
 import java.io.*;
+import java.rmi.server.UID;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1369,7 +1370,6 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                 protein.removeProperty(PropertyType.SUPPORT_SCORE.toString());
                 protein.removeProperty(PropertyType.ABUNDANCE_SCORE.toString());
                 protein.removeProperty(PropertyType.SCORED_BY.toString());
-                protein.removeProperty(PropertyType.MAPPED.toString());
             }
 
             ResourceIterator<Node> complexs = graphDb.findNodes(Label.label("Complex"));
@@ -1379,6 +1379,12 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                 complex.removeProperty(PropertyType.ABUNDANCE_SCORE.toString());
                 complex.removeProperty(PropertyType.SCORED_BY.toString());
                 complex.removeProperty(PropertyType.MAPPED.toString());
+            }
+
+            ResourceIterator<Node> uids = graphDb.findNodes(Label.label(LabelTypes.UNIPROT_ID.toString()));
+            for (ResourceIterator<Node> it = uids; it.hasNext(); ) {
+                Node uid = it.next();
+                uid.removeProperty(PropertyType.MAPPED.toString());
             }
             tx.success();
         }
@@ -1617,13 +1623,10 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
         HashMap<Long, ArrayList<Integer>> numMapped = new HashMap<>();
         HashMap<Long,  ArrayList<Double>> avgSScore = new HashMap<>();
         HashMap<Long,  ArrayList<Double>> sumSScore = new HashMap<>();
-        HashMap<Long,  ArrayList<Double>> medianSScore = new HashMap<>();
-        HashMap<Long,  ArrayList<String>> rangeSScore = new HashMap<>();
-        HashMap<Long,  ArrayList<Double>> stdDevSScore = new HashMap<>();
         HashMap<Long,  Integer> nbhdIntegrated = new HashMap<>();
         HashMap<Long,  Integer> nbhdSize = new HashMap<>();
         HashMap<Long,  Integer> numUIDs = new HashMap<>();
-        HashMap<Long,  Integer> numUIDsMapped = new HashMap<>();
+        HashMap<Long,  ArrayList<Integer>> numUIDsMapped = new HashMap<>();
         HashMap<Long, String> nbhd2UID = new HashMap<>();
         HashMap<Long, String> nbhd2DispName = new HashMap<>();
 
@@ -1769,7 +1772,6 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                     if(physicalEntity.hasLabel(Label.label("Protein")) | physicalEntity.hasLabel(Label.label("Complex"))) {
                         HashSet<Node> nbhd = neighbourTraversal(physicalEntity, depth, graphDb);
 
-
                         // count the total neighbourhood size
                         // count number of measured things
                         for(Node node:nbhd){
@@ -1793,19 +1795,12 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                             }
                             if( node.hasLabel(Label.label("Complex"))){
                                 String cplxUIDs = node.getProperty(PropertyType.UNIPROT_ID.toString()).toString();
-                                String[] split = cplxUIDs.split(",");
+                                String[] split = cplxUIDs.split(",\\s");
                                 for (String uid: split) {
                                     Pattern p = Pattern.compile(UID_PATTERN);
                                     Matcher m = p.matcher(uid);
                                     if (m.find()) {
                                         nbhdUids.add(m.group(0));
-
-                                       /* Node uidNode = graphDb.findNode(Label.label(LabelTypes.UNIPROT_ID.toString()), PropertyType.UNIPROT_ID.toString(), m.group(0));
-                                        if(uidNode.hasProperty(PropertyType.MAPPED.toString())){
-                                            numUIDsMeasured.add(uidNode.getProperty(PropertyType.UNIPROT_ID.toString()).toString());
-                                        }*/
-
-
                                     }
                                 }
                                 if(node.hasProperty(PropertyType.MAPPED.toString())){
@@ -1817,7 +1812,6 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                                 }
                             }
 
-
                             // count measured entities
                             if (node.hasProperty(PropertyType.SUPPORT_SCORE.toString())){
                                 if(Double.parseDouble(node.getProperty(PropertyType.SUPPORT_SCORE.toString()).toString()) > 0){
@@ -1826,6 +1820,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                                 nbhdSScores.add(Double.parseDouble(node.getProperty(PropertyType.SUPPORT_SCORE.toString()).toString()));
                             }
                         }
+
                         // add # measured per nbhd to hashmap
                         if(numMapped.containsKey(physicalEntity.getId())){
                             ArrayList<Integer> integers = numMapped.get(physicalEntity.getId());
@@ -1837,6 +1832,16 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                             numMapped.put(physicalEntity.getId(), integers);
                         }
 
+                        // add # measured per nbhd to hashmap
+                        if(numUIDsMapped.containsKey(physicalEntity.getId())){
+                            ArrayList<Integer> integers = numUIDsMapped.get(physicalEntity.getId());
+                            integers.add(numUIDsMeasured.size());
+                            numUIDsMapped.put(physicalEntity.getId(), integers);
+                        }else {
+                            ArrayList<Integer> integers = new ArrayList<>();
+                            integers.add(numUIDsMeasured.size());
+                            numUIDsMapped.put(physicalEntity.getId(), integers);
+                        }
 
                         nbhdSize.put(physicalEntity.getId(), nbhdSizeInt);
 
@@ -1844,7 +1849,6 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
 
                         numUIDs.put(physicalEntity.getId(), nbhdUids.size());
 
-                        numUIDsMapped.put(physicalEntity.getId(), numUIDsMeasured.size());
 
                         // AVG & SUM & STDDEV
                         Double ssAvg = 0.0;
@@ -1906,7 +1910,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                     }
                 }
 
-                // reset scores
+        /*        // reset scores
                 ResourceIterator<Node> proteins = graphDb.findNodes(Label.label("Protein"));
                 for (ResourceIterator<Node> it = proteins; it.hasNext(); ) {
                     Node protein = it.next();
@@ -1923,7 +1927,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                     complex.removeProperty(PropertyType.ABUNDANCE_SCORE.toString());
                     complex.removeProperty(PropertyType.SCORED_BY.toString());
                     complex.removeProperty(PropertyType.MAPPED.toString());
-                }
+                }*/
 
                 tx.success();
             }
@@ -1933,7 +1937,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
         // clear file if already exits
         FileWriter fstream0 = new FileWriter(outputFile + "/EmpiricalDist.tsv");
         BufferedWriter out0 = new BufferedWriter(fstream0);
-        out0.write("nbhdBaseDBID\tnbhdBaseUID\tnumEntities\tNumIntegrated\numUIDs\tnumUIDsMapped\ttnbhdMeasured\tavgSScore\tsumSScore\n" );
+        out0.write("nbhdBaseDBID\tnbhdBaseUID\tnumEntities\tNumIntegrated\tnumUIDs\tnumUIDsMapped\tnbhdMeasured\tavgSScore\tsumSScore\n" );
         out0.close();
         //Create File to write inputs/Outputs to
         FileWriter fstream = new FileWriter(outputFile + "/EmpiricalDist.tsv", true);
