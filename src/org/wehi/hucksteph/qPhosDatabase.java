@@ -677,7 +677,7 @@ public class qPhosDatabase extends MeasuredDatabase{
             String supportScoreString = "SUPPORT_SCORE_" + exprName;
             String abundanceScoreString = "ABUNDANCE_SCORE_" + exprName;
             String scoredByString = "SCORED_BY" + exprName;
-            String mappedString = "MAPPED" + exprName;
+            String mappedString = "MAPPED_" + exprName;
 
             Double maxAbundance = Double.NEGATIVE_INFINITY;
             Double minAbundance = Double.POSITIVE_INFINITY;
@@ -777,6 +777,9 @@ public class qPhosDatabase extends MeasuredDatabase{
                     } else {
                         UIDsMatched++;
                         pepsMatched += PeptideIDs.size();
+
+                        UID.setProperty(mappedString, "Mapped");
+
 
                         // GET UID
                         Iterable<Relationship> protRelationships = UID.getRelationships(RelTypes.ID_BELONGS_TO);

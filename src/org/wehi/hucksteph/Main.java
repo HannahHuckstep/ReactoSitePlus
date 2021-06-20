@@ -31,19 +31,19 @@ public class Main {
                 .dest("mode")
                 .help("\nThe function you would like to perform. \n" +
                         "Options are:\n" +
-                        "                    \"CreateDB\", takes an OWL file [-iof], an output path [-op], an optional update boolean [-u] (can be T or F, default is T), and the species of graph you'd like to make [-s] (can be human (h) or mouse(m))\n" +
-                        "                    \"PrintDatabase\", takes in input database [-idb]\n" +
-                        "                    \"AmountWithLabel\", takes in input database [-idb] and the name of the label of interest [-l]\n" +
-                        "                    \"WriteAllUIDs\", takes an input database [-idb] and an output path [-op]\n" +
-                        "                    \"WritePhos\", takes an input database [-idb] and an output path [-op]\n" +
-                        "                    \"WriteDBtoSIF\", takes an input database [-idb] and an output path [-op]\n" +
-                        "                    \"MapPeptides\", takes an input database [-idb] and an output path [-op], a file to map onto the database [-idf], and the optional Abundance Score mapping method preferred [-as] (\"HighestSupport\" is defalut)\n" +
-                        "                    \"IntegratePSP\", takes in input Reactome database [-idb], takes the PSP database [-psp], and an output path [-op]\n" +
-                        "                    \"BinomialNeighbourhoodAnalysis\", takes in a measured input database [-idb], an output path [-op], and the depth of the traversal [-d]\n"+
-                        "                    \"NeighbourhoodAnalysis\", takes in a measured input database [-idb], an output path [-op], the depth of the traversal [-d], and the experiment name of interest [-en]\n"+
-                        "                    \"ShortestPath\", takes in a measured input database [-idb], an output path [-op], a starting node id [-sid], a ending node id [-eid], the experiment name of interest [-en], and the weight type to be traversed [-ew] (can be either \"Abundance\" (a) or \"Support\" (s))\n"+
-                        "                    \"MinimalConnectionNetwork\", takes in a measured input database [-idb], an output path [-op], and the edge weights to be traverserd [-ew] (can be \"Abundance\" or \"Support\")\n"+
-                        "                    \"TraversalAnalysis\", takes in a measured input database [-idb], an output path [-op], a UniProt ID or database ID to look downstream of [-p], the direction of the traversal [-dir], and the experiment name of interest [-en]\n" +
+                                "\"PrintDatabase\", takes in input database [-idb]\n" +
+                                "\"AmountWithLabel\", takes in input database [-idb] and the name of the label of interest [-l]\n" +
+                                "\"WriteAllUIDs\", takes an input database [-idb] and an output path [-op]\n" +
+                                "\"WritePhos\", takes an input database [-idb] and an output path [-op]\n" +
+                                "\"WriteDBtoSIF\", takes an input database [-idb] and an output path [-op]\n" +
+                                "\"IntegratePSP\", takes in input Reactome database [-idb], takes the PSP database [-psp], and an output path [-op]\n" +
+                                "\"BinomialNeighbourhoodAnalysis\", takes in a measured input database [-idb], an output path [-op], and the depth of the traversal [-d]\n"+
+                                "\"MapPeptides\", takes an input database [-idb] and an output path [-op], a file to map onto the database [-idf], and the optional Abundance Score mapping method preferred [-as] (\"HighestSupport\" is defalut)\n" +
+                                "\"CreateDB\", takes an OWL file [-iof], an output path [-op], an optional update boolean [-u] (can be T or F, default is T), and the species of graph you'd like to make [-s] (can be human (h) or mouse(m))\n" +
+                                "\"NeighbourhoodAnalysis\", takes in a measured input database [-idb], an output path [-op], the depth of the traversal [-d], the experiment name of interest [-en], and the file containing the pre-calculated empirical distribution per neighbourhood [-idf]\n"+
+                                "\"ShortestPath\", takes in a measured input database [-idb], an output path [-op], a starting node id [-sid], a ending node id [-eid], the experiment name of interest [-en], and the weight type to be traversed [-ew] (can be either \"Abundance\" (a) or \"Support\" (s))\n"+
+                                "\"MinimalConnectionNetwork\", takes in a measured input database [-idb], an output path [-op], and the edge weights to be traverserd [-ew] (can be \"Abundance\" or \"Support\")\n"+
+                                "\"TraversalAnalysis\", takes in a measured input database [-idb], an output path [-op], a UniProt ID or database ID to look downstream of [-p], the direction of the traversal [-dir], and the experiment name of interest [-en]\n" +
                                 "\nqPhosDs"+
                                 "\nqPhosMapALL\t [idb][op][idf]" +
                                 "\nqPhosMap \t [idb][op][idf][en]" +
@@ -326,12 +326,15 @@ public class Main {
                     throw new NullPointerException("Missing depth parameter for neighbourhood traversal");
                 }else if(ns.getAttrs().get("experiment") == null) {
                     throw new NullPointerException("Missing experiment parameter for network traversal");
+                }else if(ns.getAttrs().get("input_data_file") == null){
+                    throw new NullPointerException("Missing Data file to map");
                 }else{
                     File input_db = new File(ns.get("input_db").toString());
                     File output_path = new File(ns.get("output_path").toString());
                     String expt = ns.getString("experiment");
                     String depth = ns.getString("depth");
                     Integer d = 0;
+                    File ed = new File(ns.get("input_data_file").toString());
                     try{
                         d = Integer.valueOf(depth);
                     }catch (NumberFormatException e){
@@ -339,7 +342,7 @@ public class Main {
                     }
 
                     MeasuredDatabase mdb = new MeasuredDatabase(input_db, output_path);
-                    mdb.nbhdAnalysis(d, expt);
+                    mdb.nbhdAnalysis(d, expt, ed);
                 }
             }
             else if(mode.equalsIgnoreCase("TraversalAnalysis") ) {

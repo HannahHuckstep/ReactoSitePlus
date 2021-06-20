@@ -6,6 +6,7 @@ import org.apache.commons.math3.stat.inference.BinomialTest;
 import org.apache.commons.math3.stat.inference.ChiSquareTest;
 import org.biopax.paxtools.model.level2.protein;
 import org.neo4j.cypher.internal.frontend.v2_3.ast.functions.Str;
+import org.neo4j.cypher.internal.frontend.v3_4.phases.Do;
 import org.neo4j.graphalgo.GraphAlgoFactory;
 import org.neo4j.graphalgo.PathFinder;
 import org.neo4j.graphalgo.WeightedPath;
@@ -1910,14 +1911,13 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                     }
                 }
 
-        /*        // reset scores
+                // reset scores
                 ResourceIterator<Node> proteins = graphDb.findNodes(Label.label("Protein"));
                 for (ResourceIterator<Node> it = proteins; it.hasNext(); ) {
                     Node protein = it.next();
                     protein.removeProperty(PropertyType.SUPPORT_SCORE.toString());
                     protein.removeProperty(PropertyType.ABUNDANCE_SCORE.toString());
                     protein.removeProperty(PropertyType.SCORED_BY.toString());
-                    protein.removeProperty(PropertyType.MAPPED.toString());
                 }
 
                 ResourceIterator<Node> complexs = graphDb.findNodes(Label.label("Complex"));
@@ -1927,7 +1927,13 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                     complex.removeProperty(PropertyType.ABUNDANCE_SCORE.toString());
                     complex.removeProperty(PropertyType.SCORED_BY.toString());
                     complex.removeProperty(PropertyType.MAPPED.toString());
-                }*/
+                }
+
+                ResourceIterator<Node> uids = graphDb.findNodes(Label.label(LabelTypes.UNIPROT_ID.toString()));
+                for (ResourceIterator<Node> it = uids; it.hasNext(); ) {
+                    Node uid = it.next();
+                    uid.removeProperty(PropertyType.MAPPED.toString());
+                }
 
                 tx.success();
             }
@@ -1937,7 +1943,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
         // clear file if already exits
         FileWriter fstream0 = new FileWriter(outputFile + "/EmpiricalDist.tsv");
         BufferedWriter out0 = new BufferedWriter(fstream0);
-        out0.write("nbhdBaseDBID\tnbhdBaseUID\tnumEntities\tNumIntegrated\tnumUIDs\tnumUIDsMapped\tnbhdMeasured\tavgSScore\tsumSScore\n" );
+        out0.write("nbhdBaseDBID\tnbhdBaseUID\tnbhdBaseDisplayName\tnumEntities\tNumIntegrated\tnumUIDs\tnumUIDsMapped\tnbhdMeasured\tavgSScore\tsumSScore\n" );
         out0.close();
         //Create File to write inputs/Outputs to
         FileWriter fstream = new FileWriter(outputFile + "/EmpiricalDist.tsv", true);
@@ -2197,13 +2203,114 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
 
     }
 
-    void nbhdAnalysis(Integer depth, String experiment) throws IOException {
+    void nbhdAnalysis(Integer depth, String experiment, File empiricalDistribution) throws IOException {
 
         File databaseDir = getDatabaseDir();
         File outputFile = getOutputFile();
         GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(databaseDir);
 
-        // reset scores
+        ////////////////////////////////////////////// Reading in empirical dists //////////////////////////////////////////////
+        BufferedReader BR = new BufferedReader(new FileReader(empiricalDistribution));
+        String line = "";
+
+        Integer nbhdBaseDBIDCol =0;
+        Integer numEntitiesCol = 0;
+        Integer numIntegratedCol = 0;
+        Integer numUIDsCol = 0;
+        Integer numUIDsMappedCol = 0;
+        Integer nbhdMesuredCol = 0;
+        Integer avgSScoreCol = 0;
+        Integer sumSScoreCol = 0;
+
+        System.out.println("Reading in all distributions per Neighbourhood");
+
+        Integer countID = 0;
+
+        HashMap<Long, ArrayList<Integer>> numUIDSMappedQPhos = new HashMap<>();
+        HashMap<Long, ArrayList<Integer>> numEntitiesMappedQPhos = new HashMap<>();
+        HashMap<Long, ArrayList<Double>> avgSScoreQPhos = new HashMap<>();
+        HashMap<Long, ArrayList<Double>> sumSScoreQPhos = new HashMap<>();
+
+        while ((line = BR.readLine()) != null) {
+            String[] columns = line.split("\t");
+            Integer colLen = columns.length;
+            if (countID == 0) { // if first line in file
+                for (int i = 0; i < colLen; i++) {
+                    if (columns[i].equalsIgnoreCase("nbhdBaseDBID")) {
+                        nbhdBaseDBIDCol = i;
+                    }
+                    if (columns[i].equals("numEntities")) {
+                        numEntitiesCol = i;
+                    }
+                    if (columns[i].equals("NumIntegrated")) {
+                        numIntegratedCol = i;
+                    }
+                    if (columns[i].equals("numUIDs")) {
+                        numUIDsCol = i;
+                    }
+                    if (columns[i].equals("numUIDsMapped")) {
+                        numUIDsMappedCol = i;
+                    }
+                    if (columns[i].equals("nbhdMeasured")) {
+                        nbhdMesuredCol = i;
+                    }
+                    if (columns[i].equals("avgSScore")) {
+                        avgSScoreCol = i;
+                    }
+                    if (columns[i].equals("sumSScore")) {
+                        sumSScoreCol = i;
+                    }
+
+                }
+                countID++;
+            } else { //for all other lines
+
+                String nbhdBaseDBID = columns[nbhdBaseDBIDCol];
+                String numEntities = columns[numEntitiesCol];
+                String numIntegrated = columns[numIntegratedCol];
+                String numUIDs = columns[numUIDsCol];
+                String numUIDsMapped = columns[numUIDsMappedCol];
+                String nbhdMesured = columns[nbhdMesuredCol];
+                String avgSScore = columns[avgSScoreCol];
+                String sumSScore = columns[sumSScoreCol];
+
+                numUIDsMapped = numUIDsMapped.replace("[", "");
+                numUIDsMapped = numUIDsMapped.replace("]", "");
+                ArrayList<Integer>  numUIDsMappedSet = new ArrayList<>();
+                for (String s :  numUIDsMapped.split(",\\s") ){
+                    numUIDsMappedSet.add(Integer.valueOf(s));
+                }
+
+                ArrayList<Integer>  nbhdMeasuredSet = new ArrayList<>();
+                nbhdMesured = nbhdMesured.replace("[", "");
+                nbhdMesured = nbhdMesured.replace("]", "");
+                for (String s :  nbhdMesured.split(",\\s") ){
+                    nbhdMeasuredSet.add(Integer.valueOf(s));
+                }
+
+                ArrayList<Double>  avgSScoreSet = new ArrayList<>();
+                avgSScore = avgSScore.replace("[", "");
+                avgSScore = avgSScore.replace("]", "");
+                for (String s :  avgSScore.split(",\\s") ){
+                    avgSScoreSet.add(Double.valueOf(s));
+                }
+
+                ArrayList<Double>  sumSScoreSet = new ArrayList<>();
+                sumSScore = sumSScore.replace("[", "");
+                sumSScore = sumSScore.replace("]", "");
+                for (String s :  sumSScore.split(",\\s") ){
+                    sumSScoreSet.add(Double.valueOf(s));
+                }
+
+                numUIDSMappedQPhos.put(Long.valueOf(nbhdBaseDBID), numUIDsMappedSet);
+                numEntitiesMappedQPhos.put(Long.valueOf(nbhdBaseDBID), nbhdMeasuredSet);
+                avgSScoreQPhos.put(Long.valueOf(nbhdBaseDBID), avgSScoreSet);
+                sumSScoreQPhos.put(Long.valueOf(nbhdBaseDBID), sumSScoreSet);
+            }
+        }
+
+
+        ////////////////////////////////////////////// Generatign stats for this Mapped data //////////////////////////////////////////////
         try (Transaction tx = graphDb.beginTx()) {
 
             // get all labels and find one that matches the experiment
@@ -2230,16 +2337,21 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
             String scoredByString = "SCORED_BY_" + experiment;
             String mappedString = "MAPPED_" + experiment;
 
+
             FileWriter fstream0 = new FileWriter(outputFile + "/NeighbourhoodAnalysis_" + experiment + ".tsv");
             BufferedWriter out0 = new BufferedWriter(fstream0);
-            out0.write("nbhdBaseDBID\tnbhdBaseUID\tnbhdSize\tnumUIDs\tNumIntegrated\tnbhdMeasured\tavgSScore\tsumSScore\n");
+            out0.write("nbhdBaseDBID\tnbhdBaseUID\tDisplayName\tNumIntegrated\tnbhdSize\tentitiesMapped\tentitiesMappedFDR\tnumUIDs\tnumUIDsMapped\tnumUIDsFDR\tavgSScore\tavgSScoreFDR\tsumSScore\tsumSScoreFDR\n");
             out0.close();
             //Create File to write inputs/Outputs to
             FileWriter fstream = new FileWriter(outputFile + "/NeighbourhoodAnalysis_" + experiment + ".tsv", true);
             BufferedWriter out = new BufferedWriter(fstream);
 
-            // generate neighbourhoods and count stuff
-
+            // generate neighbourhoods and count stuffJ.
+            Integer countEntSig = 0;
+            Integer countUIDSig = 0;
+            Integer countAvgSig = 0;
+            Integer countSumSig = 0;
+            Integer countNumNbhds = 0;
             ResourceIterator<Node> allPeNodes = graphDb.findNodes(Label.label(LabelTypes.PHYSICAL_ENTITY.toString()));
             for (ResourceIterator<Node> it = allPeNodes; it.hasNext(); ) {
                 Node physicalEntity = it.next();
@@ -2252,6 +2364,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                 HashSet<String> numUIDsMeasured = new HashSet<>();
                 if(physicalEntity.hasLabel(Label.label("Protein")) | physicalEntity.hasLabel(Label.label("Complex"))) {
                     HashSet<Node> nbhd = neighbourTraversal(physicalEntity, depth, graphDb);
+                    countNumNbhds ++;
 
 
                     // count the total neighbourhood size
@@ -2277,17 +2390,19 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                         }
                         if( node.hasLabel(Label.label("Complex"))){
                             String cplxUIDs = node.getProperty(PropertyType.UNIPROT_ID.toString()).toString();
-                            String[] split = cplxUIDs.split(",");
+                            String[] split = cplxUIDs.split(",\\s");
                             for (String uid: split) {
                                 Pattern p = Pattern.compile(UID_PATTERN);
                                 Matcher m = p.matcher(uid);
                                 if (m.find()) {
                                     nbhdUids.add(m.group(0));
-
-                                    Node uidNode = graphDb.findNode(Label.label(LabelTypes.UNIPROT_ID.toString()), PropertyType.UNIPROT_ID.toString(), m.group(0));
-                                    if(uidNode.hasProperty(mappedString)){
-                                        numUIDsMeasured.add(uidNode.getProperty(PropertyType.UNIPROT_ID.toString()).toString());
-                                    }
+                                }
+                            }
+                            if(node.hasProperty(mappedString)){
+                                String mappedUIDs = node.getProperty(mappedString).toString();
+                                String[] split1 = mappedUIDs.split(",\\s");
+                                for (String uid: split1){
+                                    numUIDsMeasured.add(uid);
                                 }
                             }
                         }
@@ -2336,23 +2451,81 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                         }
                     }
 
+                    ////////////////////////////////////////////// Comparing stats for this Mapped data //////////////////////////////////////////////
 
+                    Integer numUIDsMeasuredInt = numUIDsMeasured.size();
+                    ArrayList<Integer> integers = numUIDSMappedQPhos.get(physicalEntity.getId());
+                    Integer countNumSmaller = 0;
+                    for (Integer i : integers) {
+                        if(numUIDsMeasuredInt <= i){
+                            countNumSmaller++;
+                        }
+                    }
+                    Double numUIDsMeasuredFDR =  (countNumSmaller*1.0)/(integers.size()*1.0);
 
+                    ArrayList<Integer> integers1 = numEntitiesMappedQPhos.get(physicalEntity.getId());
+                    Integer countNumSmaller1 = 0;
+                    for (Integer i : integers1) {
+                        if(nbhdMeasured <= i){
+                            countNumSmaller1++;
+                        }
+                    }
+                    Double entitesMeasuredFDR =  (countNumSmaller1*1.0)/(integers1.size()*1.0);
+
+                    ArrayList<Double> integers2 = avgSScoreQPhos.get(physicalEntity.getId());
+                    Integer countNumSmaller2 = 0;
+                    for (Double i : integers2) {
+                        if(ssAvg <= i){
+                            countNumSmaller2++;
+                        }
+                    }
+                    Double ssAvgFDR =  (countNumSmaller2*1.0)/(integers2.size()*1.0);
+
+                    ArrayList<Double> integers3 = sumSScoreQPhos.get(physicalEntity.getId());
+                    Integer countNumSmaller3 = 0;
+                    for (Double i : integers3) {
+                        if(ssSum <= i){
+                            countNumSmaller3++;
+                        }
+                    }
+                    Double ssSumFDR =  (countNumSmaller3*1.0)/(integers3.size()*1.0);
+
+                    if(entitesMeasuredFDR < 0.05){
+                        countEntSig ++;
+                    }
+                    if(numUIDsMeasuredFDR < 0.05){
+                        countUIDSig ++;
+                    }
+                    if(ssAvgFDR < 0.05){
+                        countAvgSig ++;
+                    }
+                    if(ssSumFDR < 0.05){
+                        countSumSig ++;
+                    }
 
                     out.write(physicalEntity.getId() + "\t"
                             + uid
                             + "\t" + physicalEntity.getProperty(PropertyType.DISPLAY_NAME.toString())
-                            + "\tnumMappable: " + nbhdSizeInt
-                            + "\tnumUIDs: " + nbhdUids.size()
-                            + "\tnumUIDsMapped: " + numUIDsMeasured.size()
-                            + "\tnumIntegrated: " + numIntegrated
+                            + "\t" + numIntegrated
+                            + "\t" + nbhdSizeInt
                             + "\t" + nbhdMeasured
-                            + "\t" + ssAvg
+                            + "\t" +entitesMeasuredFDR
+                            + "\t" + nbhdUids.size()
+                            + "\t" + numUIDsMeasured.size()
+                            + "\t" +numUIDsMeasuredFDR
+                            + "\t " + ssAvg
+                            + "\t" +ssAvgFDR
                             + "\t" + ssSum
+                            + "\t" +ssSumFDR
                             + "\n");
                 }
 
             }
+            System.out.println("Num Sig nbhds w Entities: " + countEntSig);
+            System.out.println("Num Sig nbhds w UIDs: " + countUIDSig);
+            System.out.println("Num Sig nbhds w AVG: " + countAvgSig);
+            System.out.println("Num Sig nbhds w SUM: " + countSumSig);
+            System.out.println("Total number of nbhds: " + countNumNbhds);
             tx.success();
             out.close();
         }

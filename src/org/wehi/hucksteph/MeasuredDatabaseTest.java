@@ -948,9 +948,11 @@ class MeasuredDatabaseTest {
         }
 
         MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir, tempOutputDir);
+        File ED = new File( "/Users/huckstep.h/Documents/neo4j/PhlashyName/liveDemo/EmpiricalDist.tsv");
+
 
         try {
-            mdb.nbhdAnalysis(4, "0");
+            mdb.nbhdAnalysis(4, "0", ED );
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -964,8 +966,8 @@ class MeasuredDatabaseTest {
 
     @Test
     void myDist(){
-        File tempOutputDir = new File("/Users/huckstep.h/Documents/neo4j/PhlashyName/liveDemo/");
-        File tempGraphDir = new File( "/Users/huckstep.h/Documents/neo4j/PhlashyName/liveDemo/HUMAN/");
+        File tempOutputDir = new File("/Users/huckstep.h/Documents/neo4j/PhlashyName_home/liveDemo/");
+        File tempGraphDir = new File( "/Users/huckstep.h/Documents/neo4j/PhlashyName_home/liveDemo/HUMAN/");
         File miniDataFile = new File( "/Users/huckstep.h/Documents/neo4j/Project2/empiricalDist/qPhos_all_data_smaller.txt");
 
         MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir, tempOutputDir);
@@ -976,6 +978,22 @@ class MeasuredDatabaseTest {
         }
 
     }
+
+    @Test
+    void myDist_pt2(){
+        File tempOutputDir = new File("/Users/huckstep.h/Documents/neo4j/PhlashyName_home/liveDemo/");
+        File tempGraphDir = new File( "/Users/huckstep.h/Documents/neo4j/PhlashyName_home/liveDemo/HUMAN/");
+        File ED = new File( "/Users/huckstep.h/Documents/neo4j/PhlashyName_home/liveDemo/EmpiricalDist.tsv");
+
+        MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir, tempOutputDir);
+        try {
+            mdb.nbhdAnalysis(4, "J.gamma1IgG_1min,_Jgamma1_WT", ED);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 
     @Test
     void test(){

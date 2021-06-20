@@ -1143,5 +1143,26 @@ class EmbeddedNeo4jDatabaseTest {
         }
     } // print to file then use the file comparison thing
 
+    @Test
+    void test(){
+        File tempOutputDir = new File("/Users/huckstep.h/Documents/neo4j/PhlashyName_home/tutorial/");
+        File tempGraphDir = new File("/Users/huckstep.h/Documents/neo4j/PhlashyName_home/tutorial/MOUSE/");
+        File seansData = new File("/Users/huckstep.h/Documents/neo4j/PhlashyName_home/tutorial/SEANSDATA.tsv");
+
+        EmbeddedNeo4jDatabase edb = new EmbeddedNeo4jDatabase(tempGraphDir, tempOutputDir);
+        try {
+
+            InputStream sysInBackup2 = System.in; // backup System.in to restore it later
+            ByteArrayInputStream in2 = new ByteArrayInputStream("LRP mod.pep.seq Log2INT Experiment".getBytes());
+            System.setIn(in2);
+            edb.mapMQPhosphopeps(seansData, "HighestSupport");
+            System.setIn(sysInBackup2);// reset System.in to its original
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+    }
 
 }

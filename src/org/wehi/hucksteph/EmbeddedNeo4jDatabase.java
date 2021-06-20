@@ -605,7 +605,9 @@ Protein_ID modified_peptide log2Int Time
                     }
 
                     //extract aScores:
-                    if(columns[aScoreCol].isEmpty() | columns[aScoreCol].equalsIgnoreCase(aVal)){
+                    if(columns[aScoreCol].isEmpty() | columns[aScoreCol].equalsIgnoreCase(aVal)) {
+                        ID2eScore.put(String.valueOf(ID), null);
+                    }else if(columns[aScoreCol].equalsIgnoreCase("NA")){
                         ID2eScore.put(String.valueOf(ID), null);
                     }else{
                         ID2eScore.put(String.valueOf(ID), Double.valueOf(columns[aScoreCol]));
@@ -632,13 +634,13 @@ Protein_ID modified_peptide log2Int Time
                 }
             }
 
-            /*
+/*
             System.out.println("LRP: "+ ID2LRP);
             System.out.println("ascore"+ ID2eScore);
             System.out.println("id2start: " + ID2Start);
             System.out.println("id2end: " + ID2End);
             System.out.println("modlist: " + ID2TopMods);
-             */
+*/
 
 
             try (Transaction tx = graphDb.beginTx()) {

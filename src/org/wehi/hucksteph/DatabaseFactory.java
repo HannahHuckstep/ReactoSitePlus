@@ -731,18 +731,21 @@ public class DatabaseFactory {
                         }
                     }
                 }else if(uid.contains("_c")){
-                    // if the UID node doesnt exist
-                    if (graphDb.findNode(Label.label(LabelTypes.UNIPROT_ID.toString()), PropertyType.UNIPROT_ID.toString(), uid) == null) {
-                        // make it and attach it to the Protein node
-                        Node node = graphDb.createNode(Label.label(LabelTypes.UNIPROT_ID.toString()));
-                        node.setProperty(PropertyType.UNIPROT_ID.toString(), uid);
-                        node.setProperty(PropertyType.DB_ID.toString(), uid);
-                        node.setProperty(PropertyType.DISPLAY_NAME.toString(), uid);
-                        node.setProperty(PropertyType.TYPE.toString(), "ProteinID");
-                        node.setProperty(PropertyType.STATUS.toString(), "Current");
-                        node.setProperty(PropertyType.DB_CONNECTION.toString(), ("https://www.uniprot.org/uniprot/" + uid));
-                        node.createRelationshipTo(current, RelTypes.ID_BELONGS_TO);
-
+                    Matcher m = p.matcher(uid);
+                    if (m.find() ) {
+                        String theGroup = m.group(0);
+                        // if the UID node doesnt exist
+                        if (graphDb.findNode(Label.label(LabelTypes.UNIPROT_ID.toString()), PropertyType.UNIPROT_ID.toString(), theGroup) == null) {
+                            // make it and attach it to the Protein node
+                            Node node = graphDb.createNode(Label.label(LabelTypes.UNIPROT_ID.toString()));
+                            node.setProperty(PropertyType.UNIPROT_ID.toString(), theGroup);
+                            node.setProperty(PropertyType.DB_ID.toString(), theGroup);
+                            node.setProperty(PropertyType.DISPLAY_NAME.toString(), theGroup);
+                            node.setProperty(PropertyType.TYPE.toString(), "ProteinID");
+                            node.setProperty(PropertyType.STATUS.toString(), "Current");
+                            node.setProperty(PropertyType.DB_CONNECTION.toString(), ("https://www.uniprot.org/uniprot/" + theGroup));
+                            node.createRelationshipTo(current, RelTypes.ID_BELONGS_TO);
+                        }
 
                     } else {
                         graphDb.findNode(Label.label(LabelTypes.UNIPROT_ID.toString()), PropertyType.UNIPROT_ID.toString(), uid).createRelationshipTo(current, RelTypes.ID_BELONGS_TO);
@@ -772,7 +775,7 @@ public class DatabaseFactory {
      * creates a physical entity node in the database
      */
     private   Node createPENode(Entity entity){
-
+        Pattern p = Pattern.compile(UID_PATTERN);
         // else if its  a PE thats not a prot just make the node INCLUDING COMPLEX
         current = graphDb.createNode(Label.label(classToString(entity.getClass().toString())));
         current.addLabel(Label.label(LabelTypes.PHYSICAL_ENTITY.toString()));
@@ -803,6 +806,11 @@ public class DatabaseFactory {
                     entMatcher.find();
                     newUID = entMatcher.group(0);
                     newUIDs.add(newUID);
+                }
+                Matcher m = p.matcher(uid);
+                if (m.find() ) {
+                    String theGroup = m.group(0);
+                    newUIDs.add(theGroup);
                 }
                 else{
                     newUIDs.add(uid);
