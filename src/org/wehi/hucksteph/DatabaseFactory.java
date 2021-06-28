@@ -41,10 +41,10 @@ public class DatabaseFactory {
     private final String mouseUIDs = "https://www.uniprot.org/uniprot/?query=organism:10090&format=tab&columns=id";
     private final String UID_PATTERN_NO_ISO = "[OPQ][0-9][A-Z0-9]{3}[0-9](\\-[0-9*]{1,2})?|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9])";
     private final String UID_PATTERN = "[OPQ][0-9][A-Z0-9]{3}[0-9](\\-[0-9*]{1,2})?|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}(\\-[0-9*]{1,2})?";
-    private final String KINASES = "https://www.uniprot.org/uniprot/?query=keyword:%22Kinase%20[KW-0418]%22&format=list&fil=organism:%22Homo%20sapiens%20(Human)%20[9606]%22";
+    private final String KINASES = "https://www.uniprot.org/uniprot/?query=keyword:%22Kinase%20[KW-0418]%22&format=list&include=yes&fil=reviewed:yes%20AND%20organism:%22Homo%20sapiens%20(Human)%20[9606]%22";
     private final String TRANSCRIPTION_FACTORS = "https://www.uniprot.org/uniprot/?query=goa:(%22DNA-binding%20transcription%20factor%20activity%20[3700]%22)%20(reviewed:yes%20organism:%22Homo%20sapiens%20(Human)%20[9606]%22)&format=list";
     private final String CELL_SURFACE_RECEPTORS = "https://www.uniprot.org/uniprot/?query=goa:(%22cell%20surface%20receptor%20signaling%20pathway%20involved%20in%20cell-cell%20signaling%20[1905114]%22)%20(reviewed:yes%20organism:%22Homo%20sapiens%20(Human)%20[9606]%22)&format=list";
-    private final String KINASES_MOUSE = "https://www.uniprot.org/uniprot/?query=keyword:%22Kinase%20[KW-0418]%22&format=list&fil=organism:%22Mus%20musculus%20(Mouse)%20[10090]%22";
+    private final String KINASES_MOUSE = "https://www.uniprot.org/uniprot/?query=keyword:%22Kinase%20[KW-0418]%22&format=list&sort=score&fil=organism:%22Mus%20musculus%20(Mouse)%20[10090]%22%20AND%20reviewed:yes";
     private final String TRANSCRIPTION_FACTORS_MOUSE = "https://www.uniprot.org/uniprot/?query=goa:(%22DNA-binding%20transcription%20factor%20activity%20[3700]%22)%20(reviewed:yes%20organism:%22Mus%20musculus%20(Mouse)%20[10090]%22)&format=list";
     private final String CELL_SURFACE_RECEPTORS_MOUSE = "https://www.uniprot.org/uniprot/?query=goa:(%22cell%20surface%20receptor%20signaling%20pathway%20involved%20in%20cell-cell%20signaling%20[1905114]%22)%20(reviewed:yes%20organism:%22Mus%20musculus%20(Mouse)%20[10090]%22)&format=list";
 
@@ -745,10 +745,9 @@ public class DatabaseFactory {
                             node.setProperty(PropertyType.STATUS.toString(), "Current");
                             node.setProperty(PropertyType.DB_CONNECTION.toString(), ("https://www.uniprot.org/uniprot/" + theGroup));
                             node.createRelationshipTo(current, RelTypes.ID_BELONGS_TO);
+                        } else {
+                            graphDb.findNode(Label.label(LabelTypes.UNIPROT_ID.toString()), PropertyType.UNIPROT_ID.toString(), theGroup).createRelationshipTo(current, RelTypes.ID_BELONGS_TO);
                         }
-
-                    } else {
-                        graphDb.findNode(Label.label(LabelTypes.UNIPROT_ID.toString()), PropertyType.UNIPROT_ID.toString(), uid).createRelationshipTo(current, RelTypes.ID_BELONGS_TO);
                     }
                 }else{
                     if (graphDb.findNode(Label.label(LabelTypes.UNIPROT_ID.toString()), PropertyType.UNIPROT_ID.toString(), uid) == null) {
