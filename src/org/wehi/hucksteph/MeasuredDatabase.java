@@ -163,6 +163,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                     for (Relationship relationship : relationships) {
                         Node prot = relationship.getEndNode();
                         if (direction.equalsIgnoreCase("downstream")) {
+                            System.out.println(prot.getId());
 
                             Traverser nodeTraverser = getDownstream(prot, graphDb);
                             traverserMap.put(prot, nodeTraverser);
@@ -188,6 +189,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                         uniqueLens.add(len);
                     }
 
+                    System.out.println(traverserLen);
                     // now you have 2 maps Node:Traverser, Node:TraverserLen
                     // write to stream
 
@@ -231,17 +233,18 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                     List<Integer> lens = new ArrayList<>(values);
                     Integer count =  0;
 
-
                     Integer max = Collections.max(lens);
                     if(values.size() >1){
                         for (int i = 0; i < uniqueLens.size(); i++) {
+                            System.out.println( lens);
+                            System.out.println(max);
                             count++;
                             for (Node key: traverserLen.keySet()) {
                                 if (traverserLen.get(key).equals(max)){
                                     traversalReport(count, traverserMap.get(key), graphDb,uid,key,out1, experiment, out3);
                                 }
                             }
-                            lens.remove(max);
+                            lens.removeAll(Collections.singleton(max));
                             if(!lens.isEmpty()){
                                 max = Collections.max(lens);
                             }
