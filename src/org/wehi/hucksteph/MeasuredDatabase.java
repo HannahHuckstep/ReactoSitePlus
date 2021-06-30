@@ -1229,6 +1229,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
             Integer numKinases = 0;
             Integer numMappedKinases = 0;
             Integer numIntegrated = 0;
+
             for (Node node: mcnNodes){
                 out1.write(node.getId() + "\tMCN_"+experiment+"\n");
                 if(node.hasLabel(Label.label("Protein"))){
@@ -1254,7 +1255,6 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                     Iterable<Relationship> uidRels = node.getRelationships(RelTypes.ID_BELONGS_TO, Direction.INCOMING);
                     for(Relationship uidRel: uidRels){
                         Node uidNode = uidRel.getStartNode();
-                        mcnNodes.add(uidNode);
                         numUIDs.add(uidNode.getProperty(PropertyType.UNIPROT_ID.toString()).toString());
                         out1.write(uidNode.getId() + "\tMCN_"+experiment+"\n");
                     }
@@ -1270,6 +1270,10 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                 }else if (node.hasLabel(Label.label("BiochemicalReaction"))){
                     numRXNs++;
                 }
+            }
+
+            for (String uid: numUIDs) {
+                out1.write(uid + "\tMCN_"+experiment+"\n");
             }
             out1.close();
 

@@ -42,7 +42,7 @@ public class Main {
                                 "\"CreateDB\", takes an OWL file [-iof], an output path [-op], an optional update boolean [-u] (can be T or F, default is T), and the species of graph you'd like to make [-s] (can be human (h) or mouse(m))\n" +
                                 "\"NeighbourhoodAnalysis\", takes in a measured input database [-idb], an output path [-op], the depth of the traversal [-d], the experiment name of interest [-en], and the file containing the pre-calculated empirical distribution per neighbourhood [-idf]\n"+
                                 "\"ShortestPath\", takes in a measured input database [-idb], an output path [-op], a starting node id [-sid], a ending node id [-eid], and the weight type to be traversed [-ew] (can be either \"Abundance\" (a) or \"Support\" (s))\n"+
-                                "\"MinimalConnectionNetwork\", takes in a measured input database [-idb], an output path [-op], and the edge weights to be traverserd [-ew] (can be \"Abundance\" or \"Support\")\n"+
+                                "\"MinimalConnectionNetwork\", takes in a measured input database [-idb], an output path [-op], and the experiment name of interest [-en]\n"+
                                 "\"TraversalAnalysis\", takes in a measured input database [-idb], an output path [-op], a UniProt ID or database ID to look downstream of [-p], the direction of the traversal [-dir], and the experiment name of interest [-en]\n" +
                                 "\nqPhosDs"+
                                 "\nqPhosMapALL\t [idb][op][idf]" +
