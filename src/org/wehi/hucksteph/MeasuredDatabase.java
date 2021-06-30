@@ -62,6 +62,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                 .relationships(RelTypes.CONTROLS, Direction.OUTGOING)
                 .relationships(RelTypes.CATALYSIS, Direction.OUTGOING)
                 .relationships(RelTypes.COMPONENT, Direction.OUTGOING)
+                .relationships(RelTypes.SMALL_MOL_EDGE, Direction.OUTGOING)
                 .relationships(RelationshipType.withName("ACTIVATION"), Direction.OUTGOING)
                 .relationships(RelationshipType.withName("INHIBITION"), Direction.OUTGOING);
         return td.traverse(node);
@@ -90,6 +91,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                 .relationships(RelTypes.PHOSPHORYLATION, Direction.INCOMING)
                 .relationships(RelTypes.ID_BELONGS_TO, Direction.INCOMING)
                 .relationships(RelTypes.COMPONENT, Direction.INCOMING)
+                .relationships(RelTypes.SMALL_MOL_EDGE, Direction.INCOMING)
                 .relationships(RelationshipType.withName("ACTIVATION"), Direction.INCOMING)
                 .relationships(RelationshipType.withName("INHIBITION"), Direction.INCOMING);
         return td.traverse(node);
@@ -163,7 +165,6 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                     for (Relationship relationship : relationships) {
                         Node prot = relationship.getEndNode();
                         if (direction.equalsIgnoreCase("downstream")) {
-                            System.out.println(prot.getId());
 
                             Traverser nodeTraverser = getDownstream(prot, graphDb);
                             traverserMap.put(prot, nodeTraverser);
@@ -189,7 +190,6 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                         uniqueLens.add(len);
                     }
 
-                    System.out.println(traverserLen);
                     // now you have 2 maps Node:Traverser, Node:TraverserLen
                     // write to stream
 
@@ -236,8 +236,6 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                     Integer max = Collections.max(lens);
                     if(values.size() >1){
                         for (int i = 0; i < uniqueLens.size(); i++) {
-                            System.out.println( lens);
-                            System.out.println(max);
                             count++;
                             for (Node key: traverserLen.keySet()) {
                                 if (traverserLen.get(key).equals(max)){
@@ -550,6 +548,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                 .relationships(RelTypes.INPUT, Direction.BOTH)
                 .relationships(RelTypes.CONTROLS, Direction.BOTH)
                 .relationships(RelTypes.CATALYSIS, Direction.BOTH)
+                .relationships(RelTypes.SMALL_MOL_EDGE, Direction.BOTH)
                 .relationships(RelationshipType.withName("ACTIVATION"), Direction.BOTH)
                 .relationships(RelationshipType.withName("INHIBITION"), Direction.BOTH);
 
@@ -970,11 +969,10 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                                     out1.write(node.getId()+"\t"+startString+"_to_"+endString+"\n");
                                 }
                             }
-                            out1.close();
 
                             // print 'em
                             out.write("\n\nPath between " + startString +" and " + endString + " in experiment " + supportScoreStr.replace("SUPPORT_SCORE_", ""));
-                            out.write("\n" + startString +" (" +start.getId()+ ") is Downstream of " + endString +" ("+end.getId()+")" );
+                            out.write("\n" + startString +" (" +start.getId()+ ") is upstream of " + endString +" ("+end.getId()+")" );
                             out.write("\nLength of path: " + path.length());
                             out.write("\nNumber of molecules: " + numMolecules);
                             out.write("\nNumber of reactions: " + numRelationships);
@@ -1007,6 +1005,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                                 }
                             }
                         }
+                        out1.close();
                     }else if (lengthUS > 0){
 
                         FileWriter fstream1 = new FileWriter(outputFile + "/"+startString+"_to_"+endString+"_downstream.tsv");
@@ -1055,11 +1054,10 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                                     out1.write(node.getId()+"\t"+startString+"_to_"+endString+"\n");
                                 }
                             }
-                            out1.close();
 
                             // print 'em
                             out.write("\n\nPath between " + startString +" and " + endString + " in experiment " + supportScoreStr.replace("SUPPORT_SCORE_", ""));
-                            out.write("\n"+ startString +" ("+start.getId()+ ") is Upstream of " + endString +" ("+end.getId()+")");
+                            out.write("\n"+ startString +" ("+start.getId()+ ") is downstream of " + endString +" ("+end.getId()+")");
                             out.write("\nLength of path: " + path.length());
                             out.write("\nNumber of molecules: " + numMolecules);
                             out.write("\nNumber of reactions: " + numRelationships);
@@ -1092,6 +1090,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                                 }
                             }
                         }
+                        out1.close();
                     }
                 }
             }
@@ -1106,7 +1105,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
 
     }
 
-    public void minimalConnectionNetwork(String weightType) throws IOException {
+    public void minimalConnectionNetwork(String experiment) throws IOException {
         File databaseDir = getDatabaseDir();
         File outputFile = getOutputFile();
         GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(databaseDir);
@@ -1118,174 +1117,176 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
             Boolean measured = false;
             for (String property : allPropertyKeys) {
                 // get experiment name for weights
-                if (property.contains("SUPPORT_SCORE_")) {
-                    experimentStrs.add(property.replaceAll("SUPPORT_SCORE_", ""));
+                if(property.replace("SUPPORT_SCORE_", "").equalsIgnoreCase(experiment)){ // if experiment name is in properties
                     measured = true;
+                }else if (property.contains("SUPPORT_SCORE_")){ // gather experiment names in db
+                    String support_score_ = property.replace("SUPPORT_SCORE_", "");
+                    experimentStrs.add(support_score_);
                 }
             }
             if(!measured){
-                throw new Exception("Database has no mesurements, please map data and try again");
+                throw new InputException(experiment + " is not currently in this database: " + databaseDir +
+                        "\nExperiments in this database are: " + experimentStrs);
             }
 
-            for(String experiment: experimentStrs){
-                System.out.println("\nMCN FOR "+ experiment);
-                FileWriter fstream = new FileWriter(outputFile + "/MinimalConnectionNetworkReport_"+experiment+".tsv");
-                BufferedWriter out = new BufferedWriter(fstream);
-                out.write("Minimal Connection Network (MCN) Report: ");
-                out.write("\nExperiment: " + experiment);
+            System.out.println("\nMCN FOR "+ experiment);
+            FileWriter fstream = new FileWriter(outputFile + "/MinimalConnectionNetworkReport_"+experiment+".tsv");
+            BufferedWriter out = new BufferedWriter(fstream);
+            out.write("Minimal Connection Network (MCN) Report: ");
+            out.write("\nExperiment: " + experiment);
 
-                String supportScoreStr = "SUPPORT_SCORE_" + experiment;
-                String weightString = "";
+            String supportScoreStr = "SUPPORT_SCORE_" + experiment;
+            /*
+            String weightString = "";
+            if(weightType.equalsIgnoreCase("Abundance") | weightType.equalsIgnoreCase("a")){
+                weightString = "WEIGHT_ABUNDANCE_" + experiment;
+            }else if(weightType.equalsIgnoreCase("Support") | weightType.equalsIgnoreCase("s")){
+                weightString = "WEIGHT_SUPPORT_" + experiment;
+            }*/
 
-                if(weightType.equalsIgnoreCase("Abundance") | weightType.equalsIgnoreCase("a")){
-                    weightString = "WEIGHT_ABUNDANCE_" + experiment;
-                }else if(weightType.equalsIgnoreCase("Support") | weightType.equalsIgnoreCase("s")){
-                    weightString = "WEIGHT_SUPPORT_" + experiment;
+            HashSet<Node> mapped = new HashSet<>();
+            ResourceIterator<Node> nodes = graphDb.findNodes(Label.label("Protein"));
+            while (nodes.hasNext()){
+                Node node = nodes.next();
+                if(node.hasProperty(supportScoreStr)){
+                    mapped.add(node);
+                }
+            }
+            System.out.println("Mapped Proteins: "+ mapped.size());
+
+            PathExpanderBuilder builder = PathExpanderBuilder.allTypes(Direction.OUTGOING)
+                    .remove(RelationshipType.withName(PropertyType.SMALL_MOL_EDGE.toString()))
+                    .remove(RelTypes.PATHWAY_COMPONENT) // always incoming, but just to be safe
+                    .remove(RelTypes.ID_BELONGS_TO); // always incoming, but just to be safe
+            PathFinder<Path> finder = GraphAlgoFactory.shortestPath(builder.build(), 10);
+
+            // make a hashset for all nodes and all relationships
+            HashSet<Node> mcnNodes = new HashSet<>();
+            HashSet<Relationship> mcnRels = new HashSet<>();
+
+            Integer count = 0;
+            int mappedSize = mapped.size();
+            int onePercent = round(mappedSize / 100);
+
+            // find paths between all
+            for (Node start: mapped){
+
+                HashSet<Integer> uidsStart = new HashSet<Integer>();
+                count ++;
+                if((count%onePercent) == 0){
+                    System.out.print("\rProgress: "+ (count/mappedSize)*100);
                 }
 
-                HashSet<Node> mapped = new HashSet<>();
-                ResourceIterator<Node> nodes = graphDb.findNodes(Label.label("Protein"));
-                while (nodes.hasNext()){
-                    Node node = nodes.next();
+                Iterable<Relationship> uidRels = start.getRelationships(RelTypes.ID_BELONGS_TO);
+                for(Relationship rel: uidRels){
+                    uidsStart.add((int) rel.getStartNode().getId());
+                }
+
+                mcnNodes.add(start);
+                for(Node end: mapped){
+
+                    HashSet<Integer> uidsEnd = new HashSet<Integer>();
+                    Iterable<Relationship> uidRels2 = end.getRelationships(RelTypes.ID_BELONGS_TO);
+                    for(Relationship rel: uidRels2){
+                        uidsEnd.add((int) rel.getStartNode().getId());
+                    }
+                    // if not the same node and nodes dont have same UIDs
+                    if(start.getId() != end.getId() & Collections.disjoint(uidsStart, uidsEnd)){
+                        //System.out.println("finding path between: "+ start.getId() + "and"+ end.getId());
+                        //Iterable<WeightedPath> allPathsDS = dijkstraDS.findAllPaths(start, end);
+                        //Iterator<WeightedPath> iterator = allPathsDS.iterator();
+                        Iterable<Path> allPaths = finder.findAllPaths(start, end);
+                        Iterator<Path> iterator = allPaths.iterator();
+                        while (iterator.hasNext()){
+                            //WeightedPath path = iterator.next();
+
+                            Path path = iterator.next();
+                            for (Node node : path.nodes()) {
+                                mcnNodes.add(node);
+                            }
+                            for (Relationship relationship : path.relationships()) {
+                                mcnRels.add(relationship);
+                            }
+                            //mcnNodes.addAll((Collection<? extends Node>) path.nodes());
+                            //mcnRels.addAll((Collection<? extends Relationship>) path.relationships());
+                        }
+                    }
+                }
+            }
+
+            FileWriter fstream1 = new FileWriter(outputFile + "/MinimalConnectionNetworkReport_"+experiment+"_cytoscape.tsv");
+            BufferedWriter out1 = new BufferedWriter(fstream1);
+            out1.write("NodeID\tMCN_"+experiment+"\n");
+
+            Integer numProteins = 0;
+            Integer numMappedProteins = 0;
+            Integer numPhosdProteins = 0;
+            Integer numMappedPhosdProteins = 0;
+            Integer numComplexes = 0;
+            Integer numMappedComplexes = 0;
+            HashSet<String> numUIDs = new HashSet<>();
+            Integer numRXNs = 0;
+            Integer numKinases = 0;
+            Integer numMappedKinases = 0;
+            Integer numIntegrated = 0;
+            for (Node node: mcnNodes){
+                out1.write(node.getId() + "\tMCN_"+experiment+"\n");
+                if(node.hasLabel(Label.label("Protein"))){
+                    numProteins++;
                     if(node.hasProperty(supportScoreStr)){
-                        mapped.add(node);
+                        numMappedProteins++;
                     }
-                }
-                System.out.println("Mapped Proteins: "+ mapped.size());
-
-
-                PathFinder<WeightedPath> dijkstraDS = GraphAlgoFactory.dijkstra(
-                        PathExpanders.forTypesAndDirections(
-                                RelTypes.INPUT, Direction.OUTGOING,
-                                RelTypes.OUTPUT, Direction.OUTGOING,
-                                RelTypes.CONTROLS, Direction.OUTGOING,
-                                RelTypes.CATALYSIS, Direction.OUTGOING,
-                                RelTypes.ID_BELONGS_TO, Direction.OUTGOING,
-                                RelTypes.ID_BELONGS_TO, Direction.INCOMING,
-                                RelTypes.COMPONENT, Direction.OUTGOING, //TODO ??
-                                RelationshipType.withName("ACTIVATION"), Direction.OUTGOING,
-                                RelationshipType.withName("INHIBITION"), Direction.OUTGOING),
-                        weightString,
-                        1
-                );
-
-                PathExpanderBuilder builder = PathExpanderBuilder.allTypes(Direction.OUTGOING)
-                        .remove(RelationshipType.withName(PropertyType.SMALL_MOL_EDGE.toString()))
-                        .remove(RelTypes.PATHWAY_COMPONENT) // always incoming, but just to be safe
-                        .remove(RelTypes.ID_BELONGS_TO); // always incoming, but just to be safe
-                PathFinder<Path> finder = GraphAlgoFactory.shortestPath(builder.build(), 10);
-
-                // make a hashset for all nodes and all relationships
-                HashSet<Node> mcnNodes = new HashSet<>();
-                HashSet<Relationship> mcnRels = new HashSet<>();
-
-                Integer count = 0;
-                int mappedSize = mapped.size();
-                int onePercent = round(mappedSize / 100);
-
-                // find paths between all
-                for (Node start: mapped){
-
-                    HashSet<Integer> uidsStart = new HashSet<Integer>();
-                    count ++;
-                    if((count%onePercent) == 0){
-                        System.out.print("\rProgress: "+ (count/mappedSize)*100);
+                    if(node.hasProperty(PropertyType.INTEGRATED.toString())){
+                        numIntegrated++;
                     }
-
-                    Iterable<Relationship> uidRels = start.getRelationships(RelTypes.ID_BELONGS_TO);
-                    for(Relationship rel: uidRels){
-                        uidsStart.add((int) rel.getStartNode().getId());
-                    }
-
-                    mcnNodes.add(start);
-                    for(Node end: mapped){
-
-                        HashSet<Integer> uidsEnd = new HashSet<Integer>();
-                        Iterable<Relationship> uidRels2 = end.getRelationships(RelTypes.ID_BELONGS_TO);
-                        for(Relationship rel: uidRels2){
-                            uidsEnd.add((int) rel.getStartNode().getId());
-                        }
-                        // if not the same node and nodes dont have same UIDs
-                        if(start.getId() != end.getId() & Collections.disjoint(uidsStart, uidsEnd)){
-                            //System.out.println("finding path between: "+ start.getId() + "and"+ end.getId());
-                            //Iterable<WeightedPath> allPathsDS = dijkstraDS.findAllPaths(start, end);
-                            //Iterator<WeightedPath> iterator = allPathsDS.iterator();
-                            Iterable<Path> allPaths = finder.findAllPaths(start, end);
-                            Iterator<Path> iterator = allPaths.iterator();
-                            while (iterator.hasNext()){
-                                //WeightedPath path = iterator.next();
-
-                                Path path = iterator.next();
-                                for (Node node : path.nodes()) {
-                                    mcnNodes.add(node);
-                                }
-                                for (Relationship relationship : path.relationships()) {
-                                    mcnRels.add(relationship);
-                                }
-                                //mcnNodes.addAll((Collection<? extends Node>) path.nodes());
-                                //mcnRels.addAll((Collection<? extends Relationship>) path.relationships());
-                            }
-                        }
-                    }
-                }
-
-                Integer numProteins = 0;
-                Integer numMappedProteins = 0;
-                Integer numPhosdProteins = 0;
-                Integer numMappedPhosdProteins = 0;
-                Integer numComplexes = 0;
-                Integer numMappedComplexes = 0;
-                Integer numUIDs = 0;
-                Integer numRXNs = 0;
-                Integer numKinases = 0;
-                Integer numMappedKinases = 0;
-                Integer numIntegrated = 0;
-                for (Node node: mcnNodes){
-                    if(node.hasLabel(Label.label("Protein"))){
-                        numProteins++;
+                    if (node.hasRelationship(RelTypes.PHOSPHORYLATION)){
+                        numPhosdProteins++;
                         if(node.hasProperty(supportScoreStr)){
-                            numMappedProteins++;
+                            numMappedPhosdProteins++;
                         }
-                        if(node.hasProperty(PropertyType.INTEGRATED.toString())){
-                            numIntegrated++;
-                        }
-                        if (node.hasRelationship(RelTypes.PHOSPHORYLATION)){
-                            numPhosdProteins++;
-                            if(node.hasProperty(supportScoreStr)){
-                                numMappedPhosdProteins++;
-                            }
-                        }
-                        //TODO kinases
-                    }else if(node.hasLabel(Label.label("Complex"))){
-                        numComplexes++;
-                        if(node.hasProperty(supportScoreStr)){
-                            numMappedComplexes++;
-                        }
-                        if(node.hasProperty(PropertyType.INTEGRATED.toString())){
-                            numIntegrated++;
-                        }
-                    }else if(node.hasLabel(Label.label(LabelTypes.UNIPROT_ID.toString()))){
-                        numUIDs++;
-                    }else if (node.hasLabel(Label.label("BiochemicalReaction"))){
-                        numRXNs++;
                     }
+                    if(node.hasProperty(PropertyType.KINASE.toString())) {
+                        numKinases++;
+                        if (node.hasProperty(supportScoreStr)) {
+                            numMappedKinases++;
+                        }
+                    }
+                    Iterable<Relationship> uidRels = node.getRelationships(RelTypes.ID_BELONGS_TO, Direction.INCOMING);
+                    for(Relationship uidRel: uidRels){
+                        Node uidNode = uidRel.getStartNode();
+                        mcnNodes.add(uidNode);
+                        numUIDs.add(uidNode.getProperty(PropertyType.UNIPROT_ID.toString()).toString());
+                        out1.write(uidNode.getId() + "\tMCN_"+experiment+"\n");
+                    }
+
+                }else if(node.hasLabel(Label.label("Complex"))){
+                    numComplexes++;
+                    if(node.hasProperty(supportScoreStr)){
+                        numMappedComplexes++;
+                    }
+                    if(node.hasProperty(PropertyType.INTEGRATED.toString())){
+                        numIntegrated++;
+                    }
+                }else if (node.hasLabel(Label.label("BiochemicalReaction"))){
+                    numRXNs++;
                 }
-
-                out.write("\nThe number of proteoforms in the MCN: " + numProteins);
-                out.write("\nThe number of mapped proteofroms in the MCN: " + numMappedProteins);
-                out.write("\nThe number of phosphorylated proteoforms in the MCN: " + numPhosdProteins);
-                out.write("\nThe number of mapped phosphorylated proteoforms in the MCN: " + numMappedPhosdProteins);
-                out.write("\nThe number of complexes in the MCN: " + numComplexes);
-                out.write("\nThe number of mapped complexes in the MCN: "+ numMappedComplexes);
-                out.write("\nThe number of UniProt ids in the MCN: "+ numUIDs);
-                out.write("\nThe number of mapped biochemical reactions in the MCN: "+numRXNs);
-                out.write("\nThe number of kinases in the MCN: "+numKinases);
-                out.write("\nThe number of mapped kinases in the MCN: "+numMappedKinases);
-                out.write("\nThe number of integrated nodes in the MCN: "+numIntegrated);
-                out.write("\n");
-
-                out.close();
             }
+            out1.close();
+
+            out.write("\nThe number of proteoforms in the MCN: " + numProteins);
+            out.write("\nThe number of mapped proteofroms in the MCN: " + numMappedProteins);
+            out.write("\nThe number of phosphorylated proteoforms in the MCN: " + numPhosdProteins);
+            out.write("\nThe number of mapped phosphorylated proteoforms in the MCN: " + numMappedPhosdProteins);
+            out.write("\nThe number of complexes in the MCN: " + numComplexes);
+            out.write("\nThe number of mapped complexes in the MCN: "+ numMappedComplexes);
+            out.write("\nThe number of UniProt ids in the MCN: "+ numUIDs.size());
+            out.write("\nThe number of mapped biochemical reactions in the MCN: "+numRXNs);
+            out.write("\nThe number of kinases in the MCN: "+numKinases);
+            out.write("\nThe number of mapped kinases in the MCN: "+numMappedKinases);
+            out.write("\nThe number of integrated nodes in the MCN: "+numIntegrated);
+            out.write("\n");
+
+            out.close();
             tx.success();
         } catch (Exception e) {
             e.printStackTrace();

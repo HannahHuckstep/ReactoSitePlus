@@ -36,12 +36,12 @@ public class Main {
                                 "\"WriteAllUIDs\", takes an input database [-idb] and an output path [-op]\n" +
                                 "\"WritePhos\", takes an input database [-idb] and an output path [-op]\n" +
                                 "\"WriteDBtoSIF\", takes an input database [-idb] and an output path [-op]\n" +
-                                "\"IntegratePSP\", takes in input Reactome database [-idb], takes the PSP database [-psp], and an output path [-op]\n" +
+                                "\"IntegratePSP\", takes in input Reactome database [-idb], takes the PSP database [-psp], an output path [-op], and a species [-s]\n" +
                                 "\"BinomialNeighbourhoodAnalysis\", takes in a measured input database [-idb], an output path [-op], and the depth of the traversal [-d]\n"+
                                 "\"MapPeptides\", takes an input database [-idb] and an output path [-op], a file to map onto the database [-idf], and the optional Abundance Score mapping method preferred [-as] (\"HighestSupport\" is defalut)\n" +
                                 "\"CreateDB\", takes an OWL file [-iof], an output path [-op], an optional update boolean [-u] (can be T or F, default is T), and the species of graph you'd like to make [-s] (can be human (h) or mouse(m))\n" +
                                 "\"NeighbourhoodAnalysis\", takes in a measured input database [-idb], an output path [-op], the depth of the traversal [-d], the experiment name of interest [-en], and the file containing the pre-calculated empirical distribution per neighbourhood [-idf]\n"+
-                                "\"ShortestPath\", takes in a measured input database [-idb], an output path [-op], a starting node id [-sid], a ending node id [-eid], the experiment name of interest [-en], and the weight type to be traversed [-ew] (can be either \"Abundance\" (a) or \"Support\" (s))\n"+
+                                "\"ShortestPath\", takes in a measured input database [-idb], an output path [-op], a starting node id [-sid], a ending node id [-eid], and the weight type to be traversed [-ew] (can be either \"Abundance\" (a) or \"Support\" (s))\n"+
                                 "\"MinimalConnectionNetwork\", takes in a measured input database [-idb], an output path [-op], and the edge weights to be traverserd [-ew] (can be \"Abundance\" or \"Support\")\n"+
                                 "\"TraversalAnalysis\", takes in a measured input database [-idb], an output path [-op], a UniProt ID or database ID to look downstream of [-p], the direction of the traversal [-dir], and the experiment name of interest [-en]\n" +
                                 "\nqPhosDs"+
@@ -63,8 +63,7 @@ public class Main {
                         "IntegratePSP", //done
                         "BinomialNeighbourhoodAnalysis", //done
                         "NeighbourhoodAnalysis",
-                        "DownstreamAnalysis", //done
-                        "UpstreamAnalysis", //done
+                        "TraversalAnalysis", //done
                         "ShortestPath", //done
                         "MinimalConnectionNetwork", //done
                         "ResetScores",
@@ -265,12 +264,15 @@ public class Main {
                     throw new NullPointerException("Missing output path to write to");
                 } else if(ns.getAttrs().get("psp") == null){
                     throw new NullPointerException("Missing PhosphositePlus Database to integrate");
+                } else if(ns.getAttrs().get("species") == null){
+                    throw new NullPointerException("Missing species specified");
                 }else{
                     File input_db = new File(ns.get("input_db").toString());
                     File output_path = new File(ns.get("output_path").toString());
                     File psp = new File(ns.get("psp").toString());
+                    String species = ns.get("species");
                     ReactomeDatabase rxmdb = new ReactomeDatabase(input_db, output_path);
-                    rxmdb.IntegratePSP(psp);
+                    rxmdb.IntegratePSP(psp, species);
                 }
             }
             else if(mode.equalsIgnoreCase("MapPeptides")) {
@@ -339,6 +341,7 @@ public class Main {
                         d = Integer.valueOf(depth);
                     }catch (NumberFormatException e){
                         System.out.println("Depth must be an integer");
+                        System.exit(1);
                     }
 
                     MeasuredDatabase mdb = new MeasuredDatabase(input_db, output_path);
@@ -402,13 +405,16 @@ public class Main {
                     throw new NullPointerException("Missing output path to write to");
                 } else if(ns.getAttrs().get("edge_weights") == null){
                     throw new NullPointerException("Missing the type of weights to be traversed");
+                } else if(ns.getAttrs().get("experiment") == null) {
+                    throw new NullPointerException("Missing experiment parameter for network traversal");
                 }else{
                     File input_db = new File(ns.get("input_db").toString());
                     File output_path = new File(ns.get("output_path").toString());
                     String weight = ns.get("edge_weights");
+                    String e = ns.get("experiment");
                     if(weight.equalsIgnoreCase("Abundance")| weight.equalsIgnoreCase("Support") | weight.equalsIgnoreCase("a")| weight.equalsIgnoreCase("s")){
                         MeasuredDatabase mdb = new MeasuredDatabase(input_db, output_path);
-                        mdb.minimalConnectionNetwork(weight);
+                        mdb.minimalConnectionNetwork(e);
                     }else{
                         throw new InputException("Weights to be traversed can be either \"Abundance\" (\"a\")or \"Support\" (\"s\")");
                     }
