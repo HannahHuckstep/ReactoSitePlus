@@ -186,7 +186,7 @@ class EmbeddedNeo4jDatabaseTest {
             e.printStackTrace();
         }
 
-        // text to see if complexes have correct values
+        // text to see if proteins have correct values
         GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(tempGraphDir);
         try(Transaction tx = graphDb.beginTx()){
             ResourceIterator<Node> proteins = graphDb.findNodes(Label.label("Protein"));
@@ -886,7 +886,7 @@ class EmbeddedNeo4jDatabaseTest {
                     String support_score_0 = cplx.getProperty("SUPPORT_SCORE_0").toString();
                     String abundance_score_0 = cplx.getProperty("ABUNDANCE_SCORE_0").toString();
                     assertEquals(0.515, Double.valueOf(support_score_0));
-                    assertEquals(2.288, Double.valueOf(abundance_score_0));
+                    assertEquals(4.575, Double.valueOf(abundance_score_0));
                 }else if((cplx.getProperty(PropertyType.DISPLAY_NAME.toString()).toString()).equalsIgnoreCase("Insulin receptor")){
                     String support_score_0 = cplx.getProperty("SUPPORT_SCORE_0").toString();
                     String abundance_score_0 = cplx.getProperty("ABUNDANCE_SCORE_0").toString();
@@ -896,7 +896,7 @@ class EmbeddedNeo4jDatabaseTest {
                     String support_score_0 = cplx.getProperty("SUPPORT_SCORE_0").toString();
                     String abundance_score_0 = cplx.getProperty("ABUNDANCE_SCORE_0").toString();
                     assertEquals(0.44, Double.valueOf(support_score_0));
-                    assertEquals(4.025, Double.valueOf(abundance_score_0));
+                    assertEquals(8.05, Double.valueOf(abundance_score_0));
                 }else if((cplx.getProperty(PropertyType.DISPLAY_NAME.toString()).toString()).equalsIgnoreCase("p-6Y-insulin receptor")){
                     String support_score_0 = cplx.getProperty("SUPPORT_SCORE_0").toString();
                     String abundance_score_0 = cplx.getProperty("ABUNDANCE_SCORE_0").toString();
@@ -914,11 +914,14 @@ class EmbeddedNeo4jDatabaseTest {
         }
 
         // delete temp directory
+        /*
         try{
             FileUtils.deleteDirectory(tempOutputDir);
         }catch (IOException ex){
             ex.printStackTrace();
         }
+
+         */
     }
 
     @Test
@@ -1066,6 +1069,16 @@ class EmbeddedNeo4jDatabaseTest {
         }
     }
     ///////////////////////////////////////////////////////////////////// DONE /////////////////////////////////////////////////////////////////////
+
+    @Test
+    void mapProtein_ScoredBy1() { // when we have a protein with multiple uids and one of them maps but the other doesnt
+
+    }
+
+    @Test
+    void mapProtein_ScoredByBoth() { // when we have a protein with multiple uids and both map (take highest)
+
+    }
 
     @Test
     void testWriteSIF(){
@@ -1223,6 +1236,7 @@ class EmbeddedNeo4jDatabaseTest {
         File tempOutputDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/");
         File tempGraphDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/GRAPH/");
 
+        /*
         // in case graph wasn't already deleted
         InputStream sysInBackup = System.in; // backup System.in to restore it later
         ByteArrayInputStream in = new ByteArrayInputStream("y".getBytes());
@@ -1232,18 +1246,21 @@ class EmbeddedNeo4jDatabaseTest {
         dbf.createDBfromOWL();
         System.setIn(sysInBackup);// reset System.in to its original
 
-        // Map data onto it
+         */
+
         EmbeddedNeo4jDatabase edb = new EmbeddedNeo4jDatabase(tempGraphDir, tempOutputDir);
 
         edb.printDatabase();
-
+        //if one line in the report == kinases 1 then we gucci
 
         // delete temp directory
+        /*
         try{
             FileUtils.deleteDirectory(tempOutputDir);
         }catch (IOException ex){
             ex.printStackTrace();
         }
+         */
     }
 
 }

@@ -63,9 +63,11 @@ public class DatabaseFactory {
             if (databaseDir.exists()) {
                 Scanner scanner = new Scanner(System.in);
 
+                System.out.println("***************");
                 System.out.println("*** WARNING ***");
-                System.out.println("The folder "+ databaseDir+" already exists. \n"+
-                        "To ensure a new database is made, this program will delete this folder: " + databaseDir +
+                System.out.println("***************");
+                System.out.println("You are trying to make a new database but the folder "+ databaseDir+" already exists. \n"+
+                        "To ensure a new database is made, this program will RECURSIVELY DELETE this folder: " + databaseDir +
                         "\nand generate a new one with the same name.\n" +
                         "Would you like to proceed?(y/n)");
 
@@ -507,6 +509,7 @@ public class DatabaseFactory {
                         component.createRelationshipTo(complexDB, RelTypes.COMPONENT);
                     }
                 }
+                // get all members
                 Set<PhysicalEntity> memberPhysicalEntitySet = complexRXM.getMemberPhysicalEntity();
                 for(PhysicalEntity physicalEntity: memberPhysicalEntitySet){
                     if (graphDb.findNode(Label.label(classToString(physicalEntity.getClass().toString())), PropertyType.DB_ID.toString(), entityToString(physicalEntity)) == null) {
@@ -672,9 +675,41 @@ public class DatabaseFactory {
                 }
             }
         } else {
+            Pattern p = Pattern.compile(UID_PATTERN);
             // it is a protein-PE
-            // get its components uids
-            Set<String> uids = getComponentStrings((Protein) entity);
+            // get its members uids
+            Set<String> comments = entity.getComment();
+            Set<String> uids = getComponentStrings((PhysicalEntity) entity);
+            if (!(uids.isEmpty())) {
+                HashSet<String> newUIDs = new HashSet<>();
+                for (String uid : uids) {
+                    String newUID = "";
+                    if (uid.contains("#")) {
+                        Pattern entPattern = Pattern.compile("(?<=#).*");
+                        Matcher entMatcher = entPattern.matcher(uid);
+                        entMatcher.find();
+                        newUID = entMatcher.group(0);
+                        newUIDs.add(newUID);
+                    }
+                    Matcher m = p.matcher(uid);
+                    if (m.find() ) {
+                        String theGroup = m.group(0);
+                        newUIDs.add(theGroup);
+                    }
+                    else{
+                        newUIDs.add(uid);
+                    }
+                }
+                for(String comment: comments) {
+                    if(comment.contains("Converted from EntitySet")){
+                        String uidList = String.join(", ", newUIDs);
+                        current.setProperty(PropertyType.SET.toString(), uidList);
+                    }else{
+                        String uidList = String.join(", ", newUIDs);
+                        current.setProperty(PropertyType.UNIPROT_ID.toString(), uidList);
+                    }
+                }
+            }
             // if a there are UIDs
             creatUIDNode(uids);
         }
@@ -793,6 +828,7 @@ public class DatabaseFactory {
         } else {
             current.setProperty(PropertyType.LOCATION.toString(), entityCellularLocation(entity));
         }
+
         Set<String> comments = entity.getComment();
         Set<String> uids = getComponentStrings((PhysicalEntity) entity);
         if (!(uids.isEmpty())) {

@@ -465,7 +465,7 @@ class DatabaseFactoryTest  {
 
                 if(prot.getProperty(PropertyType.DISPLAY_NAME.toString()).equals("Homologues of 4xHC-INS(90-110)")){ // Q9Y3S1 KINASE, Q9NQB0 TF & Cell Surface
                     String a = prot.getProperty(PropertyType.UNIPROT_NAME.toString()).toString();
-                    assertEquals("WNK2, TCF7L2", a);
+                    assertEquals("TCF7L2, WNK2", a);
                 }else if(prot.getProperty(PropertyType.DISPLAY_NAME.toString()).equals("P25799")){
                     String a = prot.getProperty(PropertyType.UNIPROT_NAME.toString()).toString();
                     assertEquals("TSPAN12", a);

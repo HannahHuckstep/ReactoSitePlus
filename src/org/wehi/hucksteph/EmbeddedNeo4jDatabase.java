@@ -688,7 +688,6 @@ Protein_ID modified_peptide log2Int Time
                     }
                 }
             }
-
 /*
             System.out.println("LRP: "+ ID2LRP);
             System.out.println("ascore"+ ID2eScore);
@@ -1423,7 +1422,7 @@ Protein_ID modified_peptide log2Int Time
             out2.write("\n\nNumber of proteins and complexes mapped in each cellular location:");
             if(uniqueNumMeasuredSet.size() > 1){
                 Integer max = Collections.max(numMeasured);
-                for (int i = 0; i < uniqueNumMeasuredSet.size(); i++) {
+                for (int i = 0; i < (uniqueNumMeasuredSet.size()-1); i++) {
                     for (String key: cellLocNums.keySet()) {
                         if (cellLocNums.get(key).equals(max)){
                             out2.write("\n"+key+": "+ max);
@@ -1753,7 +1752,8 @@ Protein_ID modified_peptide log2Int Time
                 // for each node get score and avg it
                 Double sScore = 0.0;
                 Double eScore = 0.0;
-                int size = nodes.size();
+                int numComponents = nodes.size();
+                HashSet<String> mappedUIDStrings = new HashSet<>();
 
                 // if one component is scored then score complex,
                 // otherwise complex score should be left null
@@ -1765,15 +1765,17 @@ Protein_ID modified_peptide log2Int Time
                         for (Relationship compUIDRel: compUIDRels) {
                             Node uid = compUIDRel.getStartNode();
                             if (uid.hasProperty(mappedString)){
-                                mappedUIDs = mappedUIDs.concat(uid.getProperty(PropertyType.UNIPROT_ID.toString()).toString()+ ", ");
+                                mappedUIDStrings.add(uid.getProperty(PropertyType.UNIPROT_ID.toString()).toString());
                             }
                         }
                     }
                 }
 
+                HashSet<Node> scoredComponents = new HashSet<>();
                 if(scoredComplex){
                     for(Node component: nodes){
                         if (component.hasProperty(supportScoreString)){ // if its a scored prt
+                            scoredComponents.add(component);
                             if(component.hasProperty(scoredByString)){ // multi UIDs
                                 scoringUIDs = scoringUIDs + component.getProperty(scoredByString) + " , ";
                             }else{ // single UID
@@ -1791,8 +1793,12 @@ Protein_ID modified_peptide log2Int Time
                             eScore += Double.parseDouble(component.getProperty(abundanceScoreString).toString());
                         }
                     }
-                    sScore = sScore/size; // TODO sscore is diluted by # of things in complex?
-                    eScore = eScore/size; //TODO should escore be the avg of only things that have score?
+                    sScore = sScore/numComponents;
+                    eScore = eScore/scoredComponents.size();
+
+                    for (String mpdUID: mappedUIDStrings) {
+                        mappedUIDs = mappedUIDs.concat(mpdUID + ", ");
+                    }
 
                     cplx.setProperty(supportScoreString, (Math.round(sScore*1000d))/1000d);
                     cplx.setProperty(abundanceScoreString, (Math.round(eScore*1000d))/1000d);

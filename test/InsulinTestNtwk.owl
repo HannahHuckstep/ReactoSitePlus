@@ -698,7 +698,7 @@
   </bp:UnificationXref>
   <bp:ProteinReference rdf:ID="ProteinReference5153">
     <bp:organism rdf:resource="#BioSource1" />
-    <bp:name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">UniProt:A5A626 Ins2</bp:name>
+    <bp:name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">UniProt:P51460 Ins2</bp:name>
     <bp:name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Ins2</bp:name>
     <bp:name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Ins-2</bp:name>
     <bp:xref rdf:resource="#UnificationXref49849" />
@@ -706,7 +706,7 @@
   </bp:ProteinReference>
   <bp:UnificationXref rdf:ID="UnificationXref49849">
     <bp:db rdf:datatype="http://www.w3.org/2001/XMLSchema#string">UniProt</bp:db>
-    <bp:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A5A626</bp:id>
+    <bp:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">P51460</bp:id>
   </bp:UnificationXref>
   <bp:Protein rdf:ID="Protein19289">
     <bp:displayName rdf:datatype="http://www.w3.org/2001/XMLSchema#string">4xHC-INS(90-110)</bp:displayName>
