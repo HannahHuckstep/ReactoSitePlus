@@ -173,7 +173,7 @@ public class DatabaseFactory {
                     Node input = createNode(left);
                     if(input.getProperty(PropertyType.TYPE.toString()).toString().equals("SmallMolecule")){
                         //input.createRelationshipTo(rxn, RelTypes.SMALL_MOL_EDGE);
-                        Relationship relationship = input.createRelationshipTo(rxn, RelTypes.INPUT);
+                        Relationship relationship = input.createRelationshipTo(rxn, RelTypes.SMALL_MOL_EDGE);
                         relationship.setProperty(PropertyType.SMALL_MOL_EDGE.toString(), "Input");
                     }else{
                         input.createRelationshipTo(rxn, RelTypes.INPUT);
@@ -183,7 +183,7 @@ public class DatabaseFactory {
                     Node output = createNode(right);
                     if(output.getProperty(PropertyType.TYPE.toString()).toString().equals("SmallMolecule")){
                         //rxn.createRelationshipTo(output, RelTypes.SMALL_MOL_EDGE);
-                        Relationship relationship = rxn.createRelationshipTo(output, RelTypes.OUTPUT);
+                        Relationship relationship = rxn.createRelationshipTo(output, RelTypes.SMALL_MOL_EDGE);
                         relationship.setProperty(PropertyType.SMALL_MOL_EDGE.toString(), "Output");
                     }else {
                         rxn.createRelationshipTo(output, RelTypes.OUTPUT);

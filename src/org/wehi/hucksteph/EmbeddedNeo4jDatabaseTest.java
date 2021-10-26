@@ -1068,10 +1068,17 @@ class EmbeddedNeo4jDatabaseTest {
     ///////////////////////////////////////////////////////////////////// DONE /////////////////////////////////////////////////////////////////////
 
     @Test
-    void testWriteSIF() {
+    void testWriteSIF(){
 
-        File tempDir = new File(DATABASE_EXPECTED_PATH+ "/toBeDeleted/");
-        File tempGraph = new File(DATABASE_EXPECTED_PATH+ "/toBeDeleted/GRAPH/");
+        File tempDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/");
+        File tempGraph = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/GRAPH/");
+
+        // delete temp graph
+        try{
+            FileUtils.deleteDirectory(tempDir);
+        }catch (IOException ex){
+            ex.printStackTrace();
+        }
 
         GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(tempGraph);
 
@@ -1081,45 +1088,72 @@ class EmbeddedNeo4jDatabaseTest {
             p1.setProperty(PropertyType.TYPE.toString(), "Protein");
             p1.setProperty(PropertyType.LOCATION.toString(), "Cytosol");
             p1.setProperty("SUPPORT_SCORE_1", 1);
-            p1.setProperty("SUPPORT_SCORE_2", 2);
+            p1.setProperty("SUPPORT_SCORE_2", 0.9);
             p1.setProperty("ABUNDANCE_SCORE_1", 0.1);
             p1.setProperty("ABUNDANCE_SCORE_2", 0.2);
 
             Node p2 = graphDb.createNode(Label.label(LabelTypes.PHYSICAL_ENTITY.toString()));
-            p1.setProperty(PropertyType.DISPLAY_NAME.toString(), "p2");
-            p1.setProperty(PropertyType.TYPE.toString(), "Protein");
-            p1.setProperty(PropertyType.LOCATION.toString(), "Cytosol");
-            p1.setProperty(PropertyType.INTEGRATED.toString(), "True");
-            p1.setProperty("SUPPORT_SCORE_1", 1);
-            p1.setProperty("SUPPORT_SCORE_2", 2);
-            p1.setProperty("ABUNDANCE_SCORE_1", 0.1);
-            p1.setProperty("ABUNDANCE_SCORE_2", 0.2);
+            p2.setProperty(PropertyType.DISPLAY_NAME.toString(), "p2");
+            p2.setProperty(PropertyType.TYPE.toString(), "Protein");
+            p2.setProperty(PropertyType.LOCATION.toString(), "Cytosol");
+            p2.setProperty(PropertyType.INTEGRATED.toString(), "True");
+            p2.setProperty("SUPPORT_SCORE_1", 1);
+            p2.setProperty("SUPPORT_SCORE_2", 1.5);
+            p2.setProperty("ABUNDANCE_SCORE_1", 0.1);
+            p2.setProperty("ABUNDANCE_SCORE_2", 0.2);
 
             Node sm1 = graphDb.createNode(Label.label(LabelTypes.PHYSICAL_ENTITY.toString()));
-            p1.setProperty(PropertyType.DISPLAY_NAME.toString(), "sm1");
-            p1.setProperty(PropertyType.TYPE.toString(), "Small_Molecule");
-            p1.setProperty(PropertyType.LOCATION.toString(), "Cytosol");
+            sm1.setProperty(PropertyType.DISPLAY_NAME.toString(), "sm1");
+            sm1.setProperty(PropertyType.TYPE.toString(), "Small_Molecule");
+            sm1.setProperty(PropertyType.LOCATION.toString(), "Cytosol");
 
             Node phos1 = graphDb.createNode(Label.label(LabelTypes.PHOSPHORYLATION.toString()));
-            p1.setProperty(PropertyType.DISPLAY_NAME.toString(), "phos1");
-            p1.setProperty(PropertyType.TYPE.toString(), "T");
-            p1.setProperty(PropertyType.LOCATION.toString(), "26");
+            phos1.setProperty(PropertyType.DISPLAY_NAME.toString(), "phos1");
+            phos1.setProperty(PropertyType.TYPE.toString(), "T");
+            phos1.setProperty(PropertyType.LOCATION.toString(), "26");
 
             Node uid1 = graphDb.createNode(Label.label(LabelTypes.UNIPROT_ID.toString()));
-            p1.setProperty(PropertyType.DISPLAY_NAME.toString(), "uid1");
+            uid1.setProperty(PropertyType.DISPLAY_NAME.toString(), "uid1");
 
             Node rxn1 = graphDb.createNode(Label.label(LabelTypes.INTERACTION.toString()));
-            p1.setProperty(PropertyType.DISPLAY_NAME.toString(), "rxn1");
-            p1.setProperty(PropertyType.TYPE.toString(), "BchmRXN");
-            p1.setProperty(PropertyType.LOCATION.toString(), "Cytosol");
+            rxn1.setProperty(PropertyType.DISPLAY_NAME.toString(), "rxn1");
+            rxn1.setProperty(PropertyType.TYPE.toString(), "BchmRXN");
+            rxn1.setProperty(PropertyType.LOCATION.toString(), "Cytosol");
 
-            p1.createRelationshipTo(rxn1, RelTypes.INPUT);
-            sm1.createRelationshipTo(rxn1, RelTypes.INPUT);
-            rxn1.createRelationshipTo(p2, RelTypes.OUTPUT);
-            phos1.createRelationshipTo(p2, RelTypes.PHOSPHORYLATION);
-            uid1.createRelationshipTo(p1, RelTypes.ID_BELONGS_TO);
-            uid1.createRelationshipTo(p2, RelTypes.ID_BELONGS_TO);
+            Relationship r1 = p1.createRelationshipTo(rxn1, RelTypes.INPUT);
+            r1.setProperty("WEIGHT_SUPPORT_1", 1.5);
+            r1.setProperty("WEIGHT_ABUNDANCE_1", 0.1);
+            r1.setProperty("WEIGHT_SUPPORT_2", 1.5);
+            r1.setProperty("WEIGHT_ABUNDANCE_2", 0.2);
+            Relationship r2 = sm1.createRelationshipTo(rxn1, RelTypes.INPUT);
+            r2.setProperty("WEIGHT_SUPPORT_1", 1.5);
+            r2.setProperty("WEIGHT_ABUNDANCE_1", 0.1);
+            r2.setProperty("WEIGHT_SUPPORT_2", 1.5);
+            r2.setProperty("WEIGHT_ABUNDANCE_2", 0.2);
+            Relationship r3 = rxn1.createRelationshipTo(p2, RelTypes.OUTPUT);
+            r3.setProperty("WEIGHT_SUPPORT_1", 1);
+            r3.setProperty("WEIGHT_ABUNDANCE_1", 0.1);
+            r3.setProperty("WEIGHT_SUPPORT_2", 1.5);
+            r3.setProperty("WEIGHT_ABUNDANCE_2", 0.2);
+            Relationship r4 = phos1.createRelationshipTo(p2, RelTypes.PHOSPHORYLATION);
+            r4.setProperty("WEIGHT_SUPPORT_1", 1.5);
+            r4.setProperty("WEIGHT_ABUNDANCE_1", 0.1);
+            r4.setProperty("WEIGHT_SUPPORT_2", 1.5);
+            r4.setProperty("WEIGHT_ABUNDANCE_2", 0.2);
+            Relationship r5 = uid1.createRelationshipTo(p1, RelTypes.ID_BELONGS_TO);
+            r5.setProperty("WEIGHT_SUPPORT_1", 1.5);
+            r5.setProperty("WEIGHT_ABUNDANCE_1", 0.5);
+            r5.setProperty("WEIGHT_SUPPORT_2", 1.5);
+            r5.setProperty("WEIGHT_ABUNDANCE_2", 0.5);
+            Relationship r6 = uid1.createRelationshipTo(p2, RelTypes.ID_BELONGS_TO);
+            r6.setProperty("WEIGHT_SUPPORT_1", 1.5);
+            r6.setProperty("WEIGHT_ABUNDANCE_1", 0.5);
+            r6.setProperty("WEIGHT_SUPPORT_2", 1.5);
+            r6.setProperty("WEIGHT_ABUNDANCE_2", 0.5);
 
+            for (String allPropertyKey : graphDb.getAllPropertyKeys()) {
+                System.out.println(allPropertyKey);
+            }
             tx.success();
         }
         graphDb.shutdown();
@@ -1136,33 +1170,80 @@ class EmbeddedNeo4jDatabaseTest {
 
 
         // delete temp graph
-        try{
-            FileUtils.deleteDirectory(tempDir);
-        }catch (IOException ex){
-            ex.printStackTrace();
-        }
+//        try{
+//            FileUtils.deleteDirectory(tempDir);
+//        }catch (IOException ex){
+//            ex.printStackTrace();
+//        }
     } // print to file then use the file comparison thing
 
     @Test
     void test(){
-        File tempOutputDir = new File("/Users/huckstep.h/Documents/neo4j/PhlashyName_home/tutorial/");
-        File tempGraphDir = new File("/Users/huckstep.h/Documents/neo4j/PhlashyName_home/tutorial/MOUSE/");
+        File tempOutputDir = new File("/Users/huckstep.h/Documents/neo4j/PhlashyName_home/temp/");
+        File tempGraphDir = new File("/Users/huckstep.h/Documents/neo4j/PhlashyName_home/temp/HUMAN/");
         File seansData = new File("/Users/huckstep.h/Documents/neo4j/PhlashyName_home/tutorial/SEANSDATA.tsv");
 
-        EmbeddedNeo4jDatabase edb = new EmbeddedNeo4jDatabase(tempGraphDir, tempOutputDir);
-        try {
+        GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(tempGraphDir);
+        try(Transaction tx = graphDb.beginTx()){
+            ResourceIterable<Label> allLabels = graphDb.getAllLabels();
+            for (Label lbl: allLabels) {
+                System.out.println(lbl);
+            }
 
-            InputStream sysInBackup2 = System.in; // backup System.in to restore it later
-            ByteArrayInputStream in2 = new ByteArrayInputStream("LRP mod.pep.seq Log2INT Experiment".getBytes());
-            System.setIn(in2);
-            edb.mapMQPhosphopeps(seansData, "HighestSupport");
-            System.setIn(sysInBackup2);// reset System.in to its original
+            HashSet<String> hs = new HashSet<String>();
+            ResourceIterator<Node> smallMolecule = graphDb.findNodes(Label.label("SmallMolecule"));
+            for (ResourceIterator<Node> it = smallMolecule; it.hasNext(); ) {
+                Node sm = it.next();
+                hs.add(sm.getProperty(PropertyType.DISPLAY_NAME.toString()).toString());
+            }
 
-        } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(hs.size());
+
+
+            ResourceIterator<Node> uid = graphDb.findNodes(Label.label("UNIPROT_ID"));
+            Integer count = 0;
+            for (ResourceIterator<Node> it = uid; it.hasNext(); ) {
+                Node id = it.next();
+                count ++;
+            }
+
+            System.out.println(count);
+
+            System.out.println(hs);
         }
 
 
+
+
+    }
+
+    @Test
+    void testKinaseReport() {
+
+        File tempOutputDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/");
+        File tempGraphDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/GRAPH/");
+
+        // in case graph wasn't already deleted
+        InputStream sysInBackup = System.in; // backup System.in to restore it later
+        ByteArrayInputStream in = new ByteArrayInputStream("y".getBytes());
+        System.setIn(in);
+        // Make a new graph
+        DatabaseFactory dbf = new DatabaseFactory(TEST_OWL_FILE, tempGraphDir, false, "human");
+        dbf.createDBfromOWL();
+        System.setIn(sysInBackup);// reset System.in to its original
+
+        // Map data onto it
+        EmbeddedNeo4jDatabase edb = new EmbeddedNeo4jDatabase(tempGraphDir, tempOutputDir);
+
+        edb.printDatabase();
+
+
+        // delete temp directory
+        try{
+            FileUtils.deleteDirectory(tempOutputDir);
+        }catch (IOException ex){
+            ex.printStackTrace();
+        }
     }
 
 }

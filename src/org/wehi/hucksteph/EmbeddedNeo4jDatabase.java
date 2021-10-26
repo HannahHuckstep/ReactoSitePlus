@@ -1,6 +1,7 @@
 package org.wehi.hucksteph;
 
 import org.biopax.paxtools.model.level2.complex;
+import org.biopax.paxtools.model.level2.protein;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.traversal.*;
@@ -282,6 +283,18 @@ public class EmbeddedNeo4jDatabase {
                             }else if(property.contains("ABUNDANCE_SCORE")){
                                 atrs = atrs.concat( property+"\t");
                                 properties2print.add(orderInt);
+                            }else if(property.contains("NBHD_entity_measured_FDR_")){
+                                atrs = atrs.concat( property+"\t");
+                                properties2print.add(orderInt);
+                            }else if(property.contains("NBHD_uids_measured_FDR_")){
+                                atrs = atrs.concat( property+"\t");
+                                properties2print.add(orderInt);
+                            }else if(property.contains("NBHD_avg_FDR_")){
+                                atrs = atrs.concat( property+"\t");
+                                properties2print.add(orderInt);
+                            }else if(property.contains("NBHD_sum_FDR_")){
+                                atrs = atrs.concat( property+"\t");
+                                properties2print.add(orderInt);
                             }
                     }
                 }
@@ -412,6 +425,48 @@ public class EmbeddedNeo4jDatabase {
                 writer.write(str);
             }
 
+            /*
+            String sif = "node\trelType\tnode\t";
+            List<Integer> sifProperties2print = new ArrayList<>();
+            for (Integer orderInt: orderKeeper.keySet()) {
+                for (int j = 1; j < orderKeeper.keySet().size() + 1; j++) {
+                    if (orderInt == j) {// in order
+                        // get innerMap key
+                        String property = orderKeeper.get(orderInt);
+                        if (property.contains("WEIGHT_")) {
+                            sif = sif.concat(property + "\t");
+                            sifProperties2print.add(orderInt);
+                        }else if (property.contains("INTEGRATED")) {
+                            sif = sif.concat(property + "\t");
+                            sifProperties2print.add(orderInt);
+                        }
+                    }
+                }
+            }
+
+
+            sif = sif.concat("\n");
+            writer.write(sif);
+
+            for (Relationship allRelationship : graphDb.getAllRelationships()) {
+                sif = allRelationship.getStartNodeId() + "\t" +
+                        allRelationship.getType() + "\t" +
+                        allRelationship.getEndNodeId() + "\t";
+
+                Map<String, Object> allProperties = allRelationship.getAllProperties();
+                for (Integer i: sifProperties2print) {
+                    String property = orderKeeper.get(i);
+                    if(allRelationship.hasProperty(property)){
+                        sif = sif.concat(allProperties.get(property).toString() + "\t");
+                    }else{
+                        sif = sif.concat("\t");
+                    }
+                }
+                sif = sif.concat("\n");
+                writer.write(sif);
+
+            }
+             */
             tx.success();
             ATTR.close();
             writer.close();
@@ -648,10 +703,10 @@ Protein_ID modified_peptide log2Int Time
                 Integer proteoformsScored = 0;
                 double pepsSpanningModTemp = 0;
                 double pepsSpanningMod = 0;
-                Integer pepsMatched = 0;
+                HashSet<String> pepsMatched = new HashSet<>();
                 Integer UIDsMatched = 0;
                 Integer UIDsNotMatched = 0;
-                Integer PepsNotMatched = 0;
+                HashSet<String> pepsNotMatched = new HashSet<>();
 
                 // for each LRP in the data
 
@@ -664,11 +719,11 @@ Protein_ID modified_peptide log2Int Time
 
                     if (UID == null) {
                         UIDsNotMatched ++;
-                        PepsNotMatched += PeptideIDs.size();
+                        pepsNotMatched.addAll(PeptideIDs);
                         continue;
                     } else {
                         UIDsMatched ++;
-                        pepsMatched += PeptideIDs.size();
+                        pepsMatched.addAll(PeptideIDs);
 
                         UID.setProperty(mappedString, "Mapped");
 
@@ -873,14 +928,14 @@ Protein_ID modified_peptide log2Int Time
                 }
 
                 out2.write("Data Statistics:");
-                out2.write("\nThe number of peptides mapped: " + pepsMatched);
-                out2.write("\nThe number of peptides not mapped: " + (ID -pepsMatched) );
+                out2.write("\nThe number of peptides mapped: " + pepsMatched.size());
+                out2.write("\nThe number of peptides not mapped: " + (pepsNotMatched.size()) );
                 out2.write("\nThe number of peptides spanning a modified region of a proteoform: " + Math.round(pepsSpanningMod));
                 out2.write("\nThe number of UniProt ID's in data that mapped to database: " + UIDsMatched);
                 out2.write("\nThe number of UniProt ID's in data that did not map to database: " + UIDsNotMatched); //TODO WRONG? - ONLY COUNTS UIDS IN DB
                 out2.write("\nThe range of abundances: " + minAbundance +" to "+ maxAbundance);
 
-                out1.write(exprName +"\t"+pepsMatched+"\t"+(ID -pepsMatched) +"\t"+UIDsMatched +"\t"+UIDsNotMatched +"\t");
+                out1.write(exprName +"\t"+pepsMatched.size()+"\t"+pepsNotMatched.size() +"\t"+UIDsMatched +"\t"+UIDsNotMatched +"\t");
 
                 tx.success();
             }
@@ -891,8 +946,8 @@ Protein_ID modified_peptide log2Int Time
             out2.close();
 
         }// expr for loop
-        System.out.println("\n\nPlease enter the following line into your console to generate diagnostic plots");
-        System.out.println("Rscript -e \"rmarkdown::render('proportionPlots.Rmd')\"");
+        System.out.println("\n\nTo generate diagnostic plots, move the proportionPlots.Rmd (from the R directory in the cloned repo) into this directory and enter the following line into your console:");
+        System.out.println("Rscript -e \"rmarkdown::render('proportionPlots.Rmd')\"\n");
         graphDb.shutdown();
         out.close();
         out1.close();
@@ -1252,8 +1307,6 @@ Protein_ID modified_peptide log2Int Time
             // pf stats
             Integer pfsMappedTo = 0;
             Integer pfsNotMappedTo = 0;
-            Integer kinsMappedTo = 0;
-            Integer kinsNotMappedTo = 0;
             ResourceIterator<Node> proteins = graphDb.findNodes(Label.label("Protein"));
             while (proteins.hasNext()){
                 Node protein = proteins.next();
@@ -1261,13 +1314,6 @@ Protein_ID modified_peptide log2Int Time
                     pfsMappedTo++;
                 }else{
                     pfsNotMappedTo++;
-                }
-                if (protein.hasProperty(PropertyType.KINASE.toString())){
-                    if(protein.hasProperty(PropertyType.KINASE.toString())){
-                        kinsMappedTo++;
-                    }else{
-                        kinsNotMappedTo++;
-                    }
                 }
             }
 
@@ -1287,20 +1333,32 @@ Protein_ID modified_peptide log2Int Time
             // UID stats
             Integer uidsMappedTo = 0;
             Integer uidsNotMappedTo = 0;
+            Integer kinsMappedTo = 0;
+            Integer kinsNotMappedTo = 0;
             ResourceIterator<Node> uids = graphDb.findNodes(Label.label(LabelTypes.UNIPROT_ID.toString()));
             while (uids.hasNext()){
                 Node uid = uids.next();
                 Boolean measured = false;
+                Boolean kinase = false;
                 for (Relationship relationship : uid.getRelationships()) {
                     Node prot = relationship.getEndNode();
                     if (prot.hasProperty(supportScoreString)){
                         measured = true;
+                    }
+                    if(prot.hasProperty(PropertyType.KINASE.toString())){
+                        kinase = true;
                     }
                 }
                 if (measured){
                     uidsMappedTo++;
                 }else{
                     uidsNotMappedTo++;
+                }
+
+                if (kinase & measured){
+                    kinsMappedTo++;
+                }else if(kinase & !measured){
+                    kinsNotMappedTo++;
                 }
             }
 
@@ -1795,13 +1853,14 @@ Protein_ID modified_peptide log2Int Time
         String weightSupportString = "WEIGHT_SUPPORT_" + tempSupportScoreString;
         String weightAbundanceString = "WEIGHT_ABUNDANCE_" + tempSupportScoreString;
 
-        // for abundance weights take absolute value (will worrk for LFC and abundances)
+        // for abundance weights take absolute value (will work for LFC and abundances)
         // for support weights, range is 0 - 1.5 and should just be what the support score is
 
         try (Transaction tx = graphDb.beginTx()) {
 
             // make abun.weight = the highest score in that experiment for all
             // make support weight = 1.5
+            // except catalysis rxns (and Template Reaction Regulation) b/c they only control rxns and they shouldnt be penalized
             // because traversals minimize weight and we dont want these edges prioritized
 
             Double maxAbsScore = Math.max(Math.abs(min), Math.abs(max));
@@ -1810,6 +1869,31 @@ Protein_ID modified_peptide log2Int Time
                 rel.setProperty(weightAbundanceString, (Math.round(maxAbsScore*1000d))/1000d);
                 rel.setProperty(weightSupportString, 1.5);
             }
+
+//            // setting catalysis - AS = absolute min, SS = 0.5
+//            Double minAbsScore = Math.min(Math.abs(min), Math.abs(max));
+//            ResourceIterator<Node> catalysis = graphDb.findNodes(Label.label("Catalysis"));
+//            for (ResourceIterator<Node> it = catalysis; it.hasNext(); ) {
+//                Node catNode = it.next();
+//                Iterable<Relationship> catNodeRelationships = catNode.getRelationships(Direction.OUTGOING);
+//                for (Relationship catNodeRel: catNodeRelationships) {
+//                    catNodeRel.setProperty(weightAbundanceString, minAbsScore);
+//                    catNodeRel.setProperty(weightSupportString, 0.5);
+//                }
+//
+//            }
+//
+//            // setting Template reaction regulation - AS = absolute min, SS = 0.5
+//            ResourceIterator<Node> TRR = graphDb.findNodes(Label.label("TemplateReactionRegulation"));
+//            for (ResourceIterator<Node> it = TRR; it.hasNext(); ) {
+//                Node trrNode = it.next();
+//                Iterable<Relationship> trrNodeRelationships = trrNode.getRelationships(Direction.OUTGOING);
+//                for (Relationship trrNodeRel: trrNodeRelationships) {
+//                    trrNodeRel.setProperty(weightAbundanceString, minAbsScore);
+//                    trrNodeRel.setProperty(weightSupportString, 0.5);
+//                }
+//
+//            }
 
 
             // assign weights to incoming rlthnshps for pe nodes

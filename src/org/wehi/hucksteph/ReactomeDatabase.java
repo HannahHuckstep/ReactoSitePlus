@@ -7,6 +7,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -29,13 +31,15 @@ public class ReactomeDatabase extends EmbeddedNeo4jDatabase{
      * @param PSPDatabaseDir the built PhosphositePlus K-S biopax database
      * @throws IOException
      */
-    public void IntegratePSP(File PSPDatabaseDir) throws IOException {
+    public void IntegratePSP(File PSPDatabaseDir, String species) throws IOException {
         File databaseDir = getDatabaseDir();
         File outputDir =  getOutputFile();
 
         if(!outputDir.exists()){
             outputDir.mkdir();
         }
+
+
 
         FileWriter fstream = new FileWriter(outputDir + "/IntegrationStats.txt");
         BufferedWriter out = new BufferedWriter(fstream);
@@ -44,13 +48,39 @@ public class ReactomeDatabase extends EmbeddedNeo4jDatabase{
 
         // get phosphoSites and their Controllers from PSP
         // pspKS -> {targetUID:{targetPhosphosite:[controllingKinaseUIDs]}}
-        HashMap<String, HashMap<String, HashSet<String>>> pspKS = getPspPhosAndControllers(PSPDatabaseDir);
+        HashMap<String, HashMap<String, HashSet<String>>> pspKS = getPspPhosAndControllers(PSPDatabaseDir, species);
 
         // first pass match phosphosites and
         GraphDatabaseService rxmGraphDb = new GraphDatabaseFactory().newEmbeddedDatabase(databaseDir);
 
 
         try (Transaction tx = rxmGraphDb.beginTx()) {
+
+            ResourceIterator<Node> speciesNodes = rxmGraphDb.findNodes(Label.label("SPECIES"));
+
+            String graphSpecies = "";
+            while(speciesNodes.hasNext()){
+                Node speciesNode = speciesNodes.next();
+                String speciesStr = speciesNode.getProperty("Species").toString();
+                if(speciesStr.equalsIgnoreCase("human")){
+                    graphSpecies = "Human";
+                }else{
+                    graphSpecies = "Mouse";
+                }
+            }
+
+            String specStr = "";
+            if(species.equalsIgnoreCase("h") | species.equalsIgnoreCase("human") | species.equals("9606")){
+                specStr = "Human";
+            }else if(species.equalsIgnoreCase("m") | species.equalsIgnoreCase("mouse") | species.equals("10090")){
+                specStr = "Mouse";
+            }
+
+            if (!graphSpecies.equals(specStr)){
+                throw new Error("Species in Reactome database is not equal to the species specified");
+            }
+
+
 
             // DONT INTEGRATE IF ALREADY INTEGRATED
             for (String allPropertyKey : rxmGraphDb.getAllPropertyKeys()) {
@@ -636,12 +666,37 @@ public class ReactomeDatabase extends EmbeddedNeo4jDatabase{
      * @param PSPDatabaseDir
      * @return
      */
-    private HashMap<String,HashMap<String, HashSet<String>>> getPspPhosAndControllers(File PSPDatabaseDir){
+    private HashMap<String,HashMap<String, HashSet<String>>> getPspPhosAndControllers(File PSPDatabaseDir, String species){
         GraphDatabaseService pspGraphDb = new GraphDatabaseFactory().newEmbeddedDatabase(PSPDatabaseDir);
 
         // pspKS -> {targetUID:{targetPhosphosite:[controllingKinaseUIDs]}}
         HashMap<String,HashMap<String, HashSet<String>>> pspKS = new HashMap<>();
         try(Transaction tx = pspGraphDb.beginTx()){
+
+
+            ResourceIterator<Node> speciesNodes = pspGraphDb.findNodes(Label.label("SPECIES"));
+
+            String graphSpecies = "";
+            while(speciesNodes.hasNext()){
+                Node speciesNode = speciesNodes.next();
+                String speciesStr = speciesNode.getProperty("Species").toString();
+                if(speciesStr.equalsIgnoreCase("human")){
+                    graphSpecies = "Human";
+                }else{
+                    graphSpecies = "Mouse";
+                }
+            }
+
+            String specStr = "";
+            if(species.equalsIgnoreCase("h") | species.equalsIgnoreCase("human") | species.equals("9606")){
+                specStr = "Human";
+            }else if(species.equalsIgnoreCase("m") | species.equalsIgnoreCase("mouse") | species.equals("10090")){
+                specStr = "Mouse";
+            }
+
+            if (!graphSpecies.equals(specStr)){
+                throw new Error("Species in PhosphoSitePlus database is not equal to the species specified");
+            }
 
 
             // get all UIDs
@@ -660,6 +715,7 @@ public class ReactomeDatabase extends EmbeddedNeo4jDatabase{
                         // if protein is phosphorylated
                         Iterable<Relationship> targetPhosRLTNSHPs = target.getRelationships(Direction.INCOMING, RelTypes.PHOSPHORYLATION);
                         Integer length = getLength(targetPhosRLTNSHPs);
+
                         if (length > 0) {
                             String currentPhos = "";
                             for (Relationship targetPhosRLTNSHP : targetPhosRLTNSHPs) {

@@ -12,5 +12,6 @@ public enum RelTypes implements RelationshipType {
     MODIFICATION,
     COMPONENT,
     PATHWAY_COMPONENT,
-    SUB_PATHWAY
+    SUB_PATHWAY,
+    SMALL_MOL_EDGE
 }

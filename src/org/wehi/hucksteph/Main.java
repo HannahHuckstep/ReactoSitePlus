@@ -50,6 +50,7 @@ public class Main {
                                 "\nqPhosNbhd" +
                                 "\nqPhosMCN \t [idb][op][en]" +
                                 "\nqPhosED \t [idb][op][idf][d][ss][rn]"+
+                                "\nmouseED \t [idb][op][idf][d][ss][rn]"+
                         "\n"
 
                         )
@@ -68,14 +69,14 @@ public class Main {
                         "MinimalConnectionNetwork", //done
                         "ResetScores",
                         "GetSpecies",
-                        "PrintAllLabels",
                         "AmountWithLabel", //done
                         "PrintAllProperties",
                         "qPhosDs",
                         "qPhosMap",
                         "qPhosNbhd",
                         "qPhosMCN",
-                        "qPhosED"
+                        "qPhosED",
+                        "mouseED"
 
                 )
                 .required(true);
@@ -104,6 +105,10 @@ public class Main {
                 .dest("input_data_file")
                 .nargs("?")
                 .help("The input data file to map");
+        parser.addArgument("--input_data_file2", "-idf2")
+                .dest("input_data_file2")
+                .nargs("?")
+                .help("The second input data file to map");
         parser.addArgument("--experiment_name", "-en" )
                 .dest("experiment")
                 .nargs("?")
@@ -111,7 +116,7 @@ public class Main {
         parser.addArgument("--abundanceScore", "-as" )
                 .dest("abundanceScore")
                 .nargs("?")
-                .help("The abundance score mapping method preffered");
+                .help("The abundance score mapping method preferred");
         parser.addArgument("--psp_db", "-psp" )
                 .dest("psp")
                 .nargs("?")
@@ -343,9 +348,15 @@ public class Main {
                         System.out.println("Depth must be an integer");
                         System.exit(1);
                     }
+                    if(ns.getAttrs().get("input_data_file2") == null){
+                        MeasuredDatabase mdb = new MeasuredDatabase(input_db, output_path);
+                        mdb.nbhdAnalysis(d, expt, ed);
+                    }else{
+                        File ed2 = new File(ns.get("input_data_file2").toString());
+                        MeasuredDatabase mdb = new MeasuredDatabase(input_db, output_path);
+                        mdb.nbhdAnalysis(d, expt, ed, ed2);
+                    }
 
-                    MeasuredDatabase mdb = new MeasuredDatabase(input_db, output_path);
-                    mdb.nbhdAnalysis(d, expt, ed);
                 }
             }
             else if(mode.equalsIgnoreCase("TraversalAnalysis") ) {
@@ -403,8 +414,8 @@ public class Main {
                     throw new NullPointerException("Missing the input: database directory");
                 } else if(ns.getAttrs().get("output_path") == null){
                     throw new NullPointerException("Missing output path to write to");
-                } else if(ns.getAttrs().get("edge_weights") == null){
-                    throw new NullPointerException("Missing the type of weights to be traversed");
+                //} else if(ns.getAttrs().get("edge_weights") == null){
+                //    throw new NullPointerException("Missing the type of weights to be traversed");
                 } else if(ns.getAttrs().get("experiment") == null) {
                     throw new NullPointerException("Missing experiment parameter for network traversal");
                 }else{
@@ -412,12 +423,12 @@ public class Main {
                     File output_path = new File(ns.get("output_path").toString());
                     String weight = ns.get("edge_weights");
                     String e = ns.get("experiment");
-                    if(weight.equalsIgnoreCase("Abundance")| weight.equalsIgnoreCase("Support") | weight.equalsIgnoreCase("a")| weight.equalsIgnoreCase("s")){
+                    //if(weight.equalsIgnoreCase("Abundance")| weight.equalsIgnoreCase("Support") | weight.equalsIgnoreCase("a")| weight.equalsIgnoreCase("s")){
                         MeasuredDatabase mdb = new MeasuredDatabase(input_db, output_path);
                         mdb.minimalConnectionNetwork(e);
-                    }else{
-                        throw new InputException("Weights to be traversed can be either \"Abundance\" (\"a\")or \"Support\" (\"s\")");
-                    }
+                    //}ese{
+                    //    throw new InputException("Weights to be traversed can be either \"Abundance\" (\"a\")or \"Support\" (\"s\")");
+                    //}
 
                 }
             }
@@ -458,7 +469,7 @@ public class Main {
                 qPhos.qPhosMinimalConnectionNetwork(experiment);
 
             }
-            else if(mode.equalsIgnoreCase("qPhosED")  ) {
+            else if(mode.equalsIgnoreCase("qPhosED")  ) { //empirical distribution generator
                 // [idb][op][idf][d][ss][rn]
                 File input_db = new File(ns.get("input_db").toString());
                 File output_path = new File(ns.get("output_path").toString());
@@ -476,6 +487,25 @@ public class Main {
                 Integer rn = Integer.valueOf(repetitionNum);
                 MeasuredDatabase mdb = new MeasuredDatabase(input_db, output_path);
                 mdb.empiricalNullDistribution(data_file,d, ss, rn);
+            }
+            else if(mode.equalsIgnoreCase("mouseED")  ) { //empirical distribution generator
+                // [idb][op][idf][d][ss][rn]
+                File input_db = new File(ns.get("input_db").toString());
+                File output_path = new File(ns.get("output_path").toString());
+                File data_file = new File(ns.get("input_data_file").toString());
+                String subsetSize = ns.getString("subset_size");
+                String repetitionNum = ns.getString("repetition_num");
+                String depth = ns.getString("depth");
+                Integer d = 0;
+                try{
+                    d = Integer.valueOf(depth);
+                }catch (NumberFormatException e){
+                    System.out.println("Depth must be an integer");
+                }
+                Integer ss = Integer.valueOf(subsetSize);
+                Integer rn = Integer.valueOf(repetitionNum);
+                MeasuredDatabase mdb = new MeasuredDatabase(input_db, output_path);
+                mdb.mouseEmpiricalNullDistribution(data_file,d, ss, rn);
             }
             /////////////////////////////////////////////////////////////////////////////////
             else{

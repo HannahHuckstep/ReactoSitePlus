@@ -154,7 +154,7 @@ public class qPhosDatabase extends MeasuredDatabase{
         return count;
     }
 
-    // this one is to map all data points, outputs file to load inot proportion plot R script
+    // this one is to map all data points, outputs file to load into proportion plot R script
     public void allMappings(File path2phosPeps) throws IOException {
         File databaseDir = getDatabaseDir();
         File outputFile = getOutputFile();
@@ -574,7 +574,7 @@ public class qPhosDatabase extends MeasuredDatabase{
         graphDb.shutdown();
     }
 
-    //this one is for specifying an experiment to map -no output, used for MCN
+    //this one maps a single qphos experiment to a database
     public void allMappings(File path2phosPeps, String expr) throws IOException {
         File databaseDir = getDatabaseDir();
         File outputFile = getOutputFile();

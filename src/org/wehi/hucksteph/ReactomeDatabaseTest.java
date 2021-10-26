@@ -58,7 +58,7 @@ class ReactomeDatabaseTest {
 
         // just made
         ReactomeDatabase rdb_integrated = new ReactomeDatabase(ACTUAL_RXM_GRAPH, ACTUAL_OUTPUT);
-        rdb_integrated.IntegratePSP(ACTUAL_PSP_GRAPH);
+        rdb_integrated.IntegratePSP(ACTUAL_PSP_GRAPH, "Human");
 
         // just made
         GraphDatabaseService actual = new GraphDatabaseFactory().newEmbeddedDatabase(ACTUAL_RXM_GRAPH);

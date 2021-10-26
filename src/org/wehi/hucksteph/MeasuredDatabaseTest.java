@@ -997,14 +997,13 @@ class MeasuredDatabaseTest {
 
     @Test
     void test(){
-        File tempOutputDir = new File("test/actual/");
-        //File tempGraphDir = new File( "test/actual/toBeDeleted/GRAPH/");
-        File tempGraphDir = new File( "/Users/huckstep.h/Documents/neo4j/PhlashyName/liveDemo/HUMAN/");
+        File tempOutputDir = new File("/Users/huckstep.h/Documents/neo4j/PhlashyName_home/MouseDB/");
+        File tempGraphDir = new File( "/Users/huckstep.h/Documents/neo4j/PhlashyName_home/tutorial/MOUSE");
+        File mouseDbFile = new File( "/Users/huckstep.h/Documents/neo4j/PhlashyName_home/MouseDB/mouseDB_testSubset.tsv");
 
-        EmbeddedNeo4jDatabase edb = new EmbeddedNeo4jDatabase(tempGraphDir,tempOutputDir );
-
+        MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir, tempOutputDir);
         try {
-            edb.writeSIF();
+            mdb.mouseEmpiricalNullDistribution(mouseDbFile, 4,10,3);
         } catch (IOException e) {
             e.printStackTrace();
         }
