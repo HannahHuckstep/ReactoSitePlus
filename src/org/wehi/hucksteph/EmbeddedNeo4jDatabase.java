@@ -528,21 +528,13 @@ Protein_ID modified_peptide log2Int Time
         HashMap<String, String> fastaMap = new HashMap<>();
         if(species.equalsIgnoreCase("human")){
             // read in human fasta
+            System.out.println("Reading in Human UniProt");
             fastaMap = fasta2dict(humanUniProt);
         }else if(species.equalsIgnoreCase("mouse")){
             // read in mouse fasta
+            System.out.println("Reading in Mouse UniProt");
             fastaMap = fasta2dict(mouseUniProt);
         }
-
-        //Create File to write inputs/Outputs to
-        FileWriter fstream =  new FileWriter(outputFile + "/SupportingPeptides.tsv");
-        BufferedWriter out = new BufferedWriter(fstream);
-        out.write("UniProtID\tSupportingPeptideLineNumber:modification\n" );
-
-        //Create File to write R inputs to
-        FileWriter fstream1 =  new FileWriter(outputFile + "/R_Mapping_input.tsv");
-        BufferedWriter out1 = new BufferedWriter(fstream1);
-        out1.write("Experiment\tpepMap\tpepNotMap\tUIDMap\tUIDnotMap\tphosdTo\tnotPhosdTo\tpfTo\tnotPFTo\tcplxTo\tnotCplxTo\tintTo\tnotIntTo\n");
 
 
         // Read in data into Dict
@@ -611,6 +603,17 @@ Protein_ID modified_peptide log2Int Time
         }
         System.out.println("Experiments to map"+ experiments);
 
+        //Create File to write inputs/Outputs to
+        FileWriter fstream =  new FileWriter(outputFile + "/SupportingPeptides.tsv");
+        BufferedWriter out = new BufferedWriter(fstream);
+        out.write("UniProtID\tSupportingPeptideLineNumber:modification\n" );
+
+        //Create File to write R inputs to
+        FileWriter fstream1 =  new FileWriter(outputFile + "/R_Mapping_input.tsv");
+        BufferedWriter out1 = new BufferedWriter(fstream1);
+        out1.write("Experiment\tpepMap\tpepNotMap\tUIDMap\tUIDnotMap\tphosdTo\tnotPhosdTo\tpfTo\tnotPFTo\tcplxTo\tnotCplxTo\tintTo\tnotIntTo\n");
+
+
         HashMap<Node, HashSet<Node>> pathSets = getPathSets(graphDb);
 
         // next for each different experiment name, only gather the data in those experiments.
@@ -662,8 +665,11 @@ Protein_ID modified_peptide log2Int Time
                     //extract aScores:
                     if(columns[aScoreCol].isEmpty() | columns[aScoreCol].equalsIgnoreCase(aVal)) {
                         ID2eScore.put(String.valueOf(ID), null);
-                    }else if(columns[aScoreCol].equalsIgnoreCase("NA")){
-                        ID2eScore.put(String.valueOf(ID), null);
+                    }else if(columns[aScoreCol].equalsIgnoreCase("NA") |
+                            columns[aScoreCol].equalsIgnoreCase("") |
+                            columns[aScoreCol].equalsIgnoreCase("null")  ){
+                        //ID2eScore.put(String.valueOf(ID), null);
+                        continue;
                     }else{
                         ID2eScore.put(String.valueOf(ID), Double.valueOf(columns[aScoreCol]));
                     }
@@ -672,7 +678,7 @@ Protein_ID modified_peptide log2Int Time
                         // generate Start
                         String start = generateStartOfPep(fastaMap, columns[leadingProtCol],columns[modPepCol]);
                         if(start.isEmpty()){
-                            continue;
+                            continue; // skip this pep
                         }
 
                         ID2Start.put(String.valueOf(ID), start);
@@ -1009,7 +1015,6 @@ Protein_ID modified_peptide log2Int Time
 
             // If protein already has a score - must have multi UIDs
             // so take the uid that gives it the highest score
-            //System.out.println( "PF score: "+ proteoformScore);
             if(protein.hasProperty(abundanceScoreString)){
                 double currentScore = Double.parseDouble(protein.getProperty(abundanceScoreString).toString());
                 if(eScore > currentScore){
@@ -1475,7 +1480,8 @@ Protein_ID modified_peptide log2Int Time
                 for (int i = 0; i < count; i++) {
                     out.write("\t");
                 }
-                out.write(pathNode.getProperty(PropertyType.DISPLAY_NAME.toString()) +": "+ propMeasured.get(pathNode) + " (Size: " + pathSet.get(pathNode).size()+ ")");
+                //(Math.round(eScore*100.00))/100.00)
+                out.write(pathNode.getProperty(PropertyType.DISPLAY_NAME.toString()) +": "+ String.format("%.2f", propMeasured.get(pathNode)*100) + "% (Size: " + pathSet.get(pathNode).size()+ ")");
                 return;
             }else{
                 out.write("\n");
@@ -1483,7 +1489,7 @@ Protein_ID modified_peptide log2Int Time
                 for (int i = 0; i < count; i++) {
                     out.write("\t");
                 }
-                out.write(pathNode.getProperty(PropertyType.DISPLAY_NAME.toString())+": "+ propMeasured.get(pathNode)+ " (Size: " + pathSet.get(pathNode).size()+ ")");
+                out.write(pathNode.getProperty(PropertyType.DISPLAY_NAME.toString())+": "+ String.format("%.2f", propMeasured.get(pathNode)*100) + "% (Size: " + pathSet.get(pathNode).size()+ ")");
 
                 for (Relationship subPathRel: subPathRels) {
                     recursePrintSubPaths( subPathRel.getEndNode(),propMeasured, pathSet,  count, out);
