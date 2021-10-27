@@ -603,15 +603,7 @@ Protein_ID modified_peptide log2Int Time
         }
         System.out.println("Experiments to map"+ experiments);
 
-        //Create File to write inputs/Outputs to
-        FileWriter fstream =  new FileWriter(outputFile + "/SupportingPeptides.tsv");
-        BufferedWriter out = new BufferedWriter(fstream);
-        out.write("UniProtID\tSupportingPeptideLineNumber:modification\n" );
 
-        //Create File to write R inputs to
-        FileWriter fstream1 =  new FileWriter(outputFile + "/R_Mapping_input.tsv");
-        BufferedWriter out1 = new BufferedWriter(fstream1);
-        out1.write("Experiment\tpepMap\tpepNotMap\tUIDMap\tUIDnotMap\tphosdTo\tnotPhosdTo\tpfTo\tnotPFTo\tcplxTo\tnotCplxTo\tintTo\tnotIntTo\n");
 
 
         HashMap<Node, HashSet<Node>> pathSets = getPathSets(graphDb);
@@ -619,8 +611,18 @@ Protein_ID modified_peptide log2Int Time
         // next for each different experiment name, only gather the data in those experiments.
         for (String exprName:experiments) {
             //Create File to write inputs/Outputs to
+            FileWriter fstream =  new FileWriter(outputFile + "/SupportingPeptides_"+exprName+".tsv");
+            BufferedWriter out = new BufferedWriter(fstream);
+            out.write("UniProtID\tSupportingPeptideLineNumber:modification\n" );
+
+            //Create File to write inputs/Outputs to
             FileWriter fstream2 =  new FileWriter(outputFile + "/PhosphoMappingReport_"+exprName+".tsv");
             BufferedWriter out2 = new BufferedWriter(fstream2);
+
+            //Create File to write R inputs to
+            FileWriter fstream1 =  new FileWriter(outputFile + "/R_Mapping_input_"+exprName+".tsv");
+            BufferedWriter out1 = new BufferedWriter(fstream1);
+            out1.write("Experiment\tpepMap\tpepNotMap\tUIDMap\tUIDnotMap\tphosdTo\tnotPhosdTo\tpfTo\tnotPFTo\tcplxTo\tnotCplxTo\tintTo\tnotIntTo\n");
 
             System.out.println("\nCurrently Mapping: "+ exprName);
             String supportScoreString = "SUPPORT_SCORE_" + exprName;
@@ -950,12 +952,12 @@ Protein_ID modified_peptide log2Int Time
             mappingReport(out2, graphDb, supportScoreString, out1, pathSets);
             out2.close();
 
+            out.close();// supporting peps
+            out1.close(); // R plotting filegit
         }// expr for loop
         System.out.println("\n\nTo generate diagnostic plots, move the proportionPlots.Rmd (from the R directory in the cloned repo) into this directory and enter the following line into your console:");
         System.out.println("Rscript -e \"rmarkdown::render('proportionPlots.Rmd')\"\n");
         graphDb.shutdown();
-        out.close();
-        out1.close();
     }
 
     HashMap<String, Double> abundanceScoreAvgHighestSupport(GraphDatabaseService graphDb,
