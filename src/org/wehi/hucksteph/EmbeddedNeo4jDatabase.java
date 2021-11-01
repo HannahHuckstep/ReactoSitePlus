@@ -110,17 +110,46 @@ public class EmbeddedNeo4jDatabase {
     }
 
     /**
+     * Prints the species node to console
+     */
+    public void printSpecies(){
+        GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(databaseDir);
+        try(Transaction tx = graphDb.beginTx()){
+            ResourceIterator<Node> speciesNodes = graphDb.findNodes(Label.label("SPECIES"));
+
+            while(speciesNodes.hasNext()){
+                Node speciesNode = speciesNodes.next();
+                String speciesStr = speciesNode.getProperty("Species").toString();
+                if(speciesStr.equalsIgnoreCase("human")){
+                    System.out.println("Human");
+                }else{
+                    System.out.println("Mouse");
+                }
+            }
+            tx.success();
+        }
+    }
+
+    /**
+     * Prints the species node to console
+     */
+    public void printProperties(){
+        GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(databaseDir);
+        try(Transaction tx = graphDb.beginTx()){
+            for (String allPropertyKey : graphDb.getAllPropertyKeys()) {
+                System.out.println(allPropertyKey);
+            }
+            tx.success();
+        }
+    }
+
+    /**
      * prints all UniProt IDs in database including deleted IDs
      * @throws IOException
      */
     public void printAllUniProtIDs() throws IOException {
         GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(databaseDir);
         File uniprotFile = new File(outputFile + "/UniProtIDs.tsv");
-        uniprotFile.createNewFile();
-        if(!uniprotFile.createNewFile()){
-            //TODO if file exists ask if you can write over
-            System.out.println("UniProtIDs.tsv File already exists\nWriting over ");
-        }
         uniprotFile.createNewFile();
         FileWriter fstream = new FileWriter(uniprotFile);
         BufferedWriter out = new BufferedWriter(fstream);
@@ -129,7 +158,7 @@ public class EmbeddedNeo4jDatabase {
             ResourceIterator<Node> nodes = graphDb.findNodes(Label.label(LabelTypes.UNIPROT_ID.toString()));
             while(nodes.hasNext()){
                 Node node = nodes.next();
-                out.write(node.getProperty(PropertyType.DB_ID.toString()).toString() + "\n");
+                out.write(node.getProperty(PropertyType.UNIPROT_ID.toString()).toString() + "\n");
             }
             out.close();
             tx.success();
@@ -163,7 +192,7 @@ public class EmbeddedNeo4jDatabase {
                         for (Relationship UIDrelationship: UIDrelationships){
                             Node UID = UIDrelationship.getStartNode();
                             if(!UID.getProperty(PropertyType.STATUS.toString()).equals("Deleted")){
-                                ptms.add(UID.getProperty(PropertyType.DB_ID.toString())
+                                ptms.add(UID.getProperty(PropertyType.UNIPROT_ID.toString())
                                         +"_"+ phosNode.getProperty(PropertyType.TYPE.toString())
                                         + phosNode.getProperty(PropertyType.LOCATION.toString()));
                             }
@@ -584,17 +613,17 @@ Protein_ID modified_peptide log2Int Time
             // Make sure the columns input exist
             if(lpBool){
                 throw new IOException("There is no "+LRP_str+" column in the input data file" +
-                        "\nThese are the columns available \n" + cols);
+                        "\nThese are the columns names in the given input file: \n" + cols);
 
             }else if(modPepBool){
                 throw new IOException("There is no "+mod_pep+" column in the input data file" +
-                        "\nThese are the columns available \n" + cols);
+                        "\nThese are the columns names in the given input file: \n" + cols);
             }else if(aSBool){
                 throw new IOException("There is no "+aVal+" column in the input data file" +
-                        "\nThese are the columns available \n" + cols);
+                        "\nThese are the columns names in the given input file: \n" + cols);
             }else if(expBool){
                 throw new IOException("There is no "+experiment+" column in the input data file" +
-                        "\nThese are the columns available \n" + cols);
+                        "\nThese are the columns names in the given input file: \n" + cols);
             }
 
             if (!columns[experimentCol].equals(experiment)){
@@ -956,7 +985,7 @@ Protein_ID modified_peptide log2Int Time
             out1.close(); // R plotting filegit
         }// expr for loop
         System.out.println("\n\nTo generate diagnostic plots, move the proportionPlots.Rmd (from the R directory in the cloned repo) into this directory and enter the following line into your console:");
-        System.out.println("Rscript -e \"rmarkdown::render('proportionPlots.Rmd')\"\n");
+        System.out.println("Rscript -e \"rmarkdown::render('proportionPlots.Rmd')\"\n"); //TODO WRONG NEED TO INPUT QPHOS
         graphDb.shutdown();
     }
 
@@ -1476,13 +1505,12 @@ Protein_ID modified_peptide log2Int Time
     private void recursePrintSubPaths(  Node pathNode, HashMap<Node, Double> propMeasured,HashMap<Node, HashSet<Node>> pathSet, Integer count, BufferedWriter out) throws IOException {
 
             Iterable<Relationship> subPathRels = pathNode.getRelationships(RelTypes.SUB_PATHWAY, Direction.OUTGOING);
-            if(getLength(subPathRels).equals(0)){
+            if(getLength(subPathRels).equals(0)){ // base case, no subpaths
                 count ++;
                 out.write("\n");
                 for (int i = 0; i < count; i++) {
                     out.write("\t");
                 }
-                //(Math.round(eScore*100.00))/100.00)
                 out.write(pathNode.getProperty(PropertyType.DISPLAY_NAME.toString()) +": "+ String.format("%.2f", propMeasured.get(pathNode)*100) + "% (Size: " + pathSet.get(pathNode).size()+ ")");
                 return;
             }else{

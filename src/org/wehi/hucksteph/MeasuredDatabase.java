@@ -1307,10 +1307,10 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
 
     /**
      * Takes a graph and removes any properties that have a score associated with the experiment name given
-     * @param graphDb
      */
-    void resetScores(GraphDatabaseService graphDb, String experiment){
+    void resetScores( String experiment){
         File databaseDir = getDatabaseDir();
+        GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(databaseDir);
 
         try (Transaction tx = graphDb.beginTx()) {
 
@@ -1318,6 +1318,10 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
             Boolean experimentLabel = true;
             String supportScoreString = "";
             String abundanceScoreString = "";
+            String mappedString = "";
+            String weightSString = "";
+            String weightAString = "";
+            String scoredByString = "";
             HashSet<String> experiments = new HashSet<>();
             ResourceIterable<String> allPropertyKeys = graphDb.getAllPropertyKeys();
             for (String property: allPropertyKeys){
@@ -1325,6 +1329,10 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                     experimentLabel = false; // dont throw error
                     supportScoreString = property;
                     abundanceScoreString = property.replaceAll("SUPPORT_SCORE", "ABUNDANCE_SCORE");
+                    mappedString = property.replaceAll("SUPPORT_SCORE", "MAPPED");
+                    weightAString = property.replaceAll("SUPPORT_SCORE", "WEIGHT_ABUNDANCE");
+                    weightSString = property.replaceAll("SUPPORT_SCORE", "WEIGHT_SUPPORT");
+                    scoredByString = property.replaceAll("SUPPORT_SCORE_", "SCORED_BY");
                 }else if (property.contains("SUPPORT_SCORE_")){ // gather experiment names in db
                     String support_score_ = property.replace("SUPPORT_SCORE_", "");
                     experiments.add(support_score_);
@@ -1341,6 +1349,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                 Node protein = it.next();
                 protein.removeProperty(supportScoreString);
                 protein.removeProperty(abundanceScoreString);
+                protein.removeProperty(scoredByString);
             }
 
             ResourceIterator<Node> complexs = graphDb.findNodes(Label.label("Complex"));
@@ -1348,7 +1357,101 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                 Node complex = it.next();
                 complex.removeProperty(supportScoreString);
                 complex.removeProperty(abundanceScoreString);
+                complex.removeProperty(scoredByString);
             }
+
+            ResourceIterator<Node> uids = graphDb.findNodes(Label.label(LabelTypes.UNIPROT_ID.toString()));
+            for (ResourceIterator<Node> it = uids; it.hasNext(); ) {
+                Node uid = it.next();
+                uid.removeProperty(mappedString);
+            }
+
+            for (Relationship allRelationship : graphDb.getAllRelationships()) {
+                allRelationship.removeProperty(weightAString);
+                allRelationship.removeProperty(weightSString);
+
+            }
+
+            for (Node allNode : graphDb.getAllNodes()) {
+                if (allNode.hasProperty(supportScoreString)){
+                    System.out.println(allNode.getAllProperties());
+                }
+            }
+
+
+            tx.success();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+    /**
+     * Takes a graph and removes any properties that have a score associated with the experiment name given
+     */
+    void resetScores( GraphDatabaseService graphDb, String experiment){
+        File databaseDir = getDatabaseDir();
+
+        try (Transaction tx = graphDb.beginTx()) {
+
+            // get all labels and find one that matches the experiment
+            Boolean experimentLabel = true;
+            String supportScoreString = "";
+            String abundanceScoreString = "";
+            String mappedString = "";
+            String weightSString = "";
+            String weightAString = "";
+            String scoredByString = "";
+            HashSet<String> experiments = new HashSet<>();
+            ResourceIterable<String> allPropertyKeys = graphDb.getAllPropertyKeys();
+            for (String property: allPropertyKeys){
+                if(property.replace("SUPPORT_SCORE_", "").equalsIgnoreCase(experiment)){ // if experiment name is in properties
+                    experimentLabel = false; // dont throw error
+                    supportScoreString = property;
+                    abundanceScoreString = property.replaceAll("SUPPORT_SCORE", "ABUNDANCE_SCORE");
+                    mappedString = property.replaceAll("SUPPORT_SCORE", "MAPPED");
+                    weightAString = property.replaceAll("SUPPORT_SCORE", "WEIGHT_ABUNDANCE");
+                    weightSString = property.replaceAll("SUPPORT_SCORE", "WEIGHT_SUPPORT");
+                    scoredByString = property.replaceAll("SUPPORT_SCORE_", "SCORED_BY");
+                }else if (property.contains("SUPPORT_SCORE_")){ // gather experiment names in db
+                    String support_score_ = property.replace("SUPPORT_SCORE_", "");
+                    experiments.add(support_score_);
+                }
+            }
+            // throw exception if experiment name given is not in the database
+            if(experimentLabel){
+                throw new Exception(experiment + " is not currently in this database: " + databaseDir +
+                        "\nExperiments in this database are: " + experiments);
+            }
+
+            ResourceIterator<Node> proteins = graphDb.findNodes(Label.label("Protein"));
+            for (ResourceIterator<Node> it = proteins; it.hasNext(); ) {
+                Node protein = it.next();
+                protein.removeProperty(supportScoreString);
+                protein.removeProperty(abundanceScoreString);
+                protein.removeProperty(scoredByString);
+            }
+
+            ResourceIterator<Node> complexs = graphDb.findNodes(Label.label("Complex"));
+            for (ResourceIterator<Node> it = complexs; it.hasNext(); ) {
+                Node complex = it.next();
+                complex.removeProperty(supportScoreString);
+                complex.removeProperty(abundanceScoreString);
+                complex.removeProperty(scoredByString);
+            }
+
+            ResourceIterator<Node> uids = graphDb.findNodes(Label.label(LabelTypes.UNIPROT_ID.toString()));
+            for (ResourceIterator<Node> it = uids; it.hasNext(); ) {
+                Node uid = it.next();
+                uid.removeProperty(mappedString);
+            }
+
+            for (Relationship allRelationship : graphDb.getAllRelationships()) {
+                allRelationship.removeProperty(weightAString);
+                allRelationship.removeProperty(weightSString);
+
+            }
+
             tx.success();
         } catch (Exception e) {
             e.printStackTrace();

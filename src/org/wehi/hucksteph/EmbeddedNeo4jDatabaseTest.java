@@ -1081,6 +1081,10 @@ class EmbeddedNeo4jDatabaseTest {
     }
 
     @Test
+    void pathwayReport(){}
+
+
+    @Test
     void testWriteSIF(){
 
         File tempDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/");

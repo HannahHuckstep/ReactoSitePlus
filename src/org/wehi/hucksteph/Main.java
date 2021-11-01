@@ -32,6 +32,8 @@ public class Main {
                 .help("\nThe function you would like to perform. \n" +
                         "Options are:\n" +
                                 "\"PrintDatabase\", takes in input database [-idb]\n" +
+                                "\"PrintSpecies\", takes in input database [-idb]\n" +
+                                "\"PrintProperties\", takes in input database [-idb]\n" +
                                 "\"AmountWithLabel\", takes in input database [-idb] and the name of the label of interest [-l]\n" +
                                 "\"WriteAllUIDs\", takes an input database [-idb] and an output path [-op]\n" +
                                 "\"WritePhos\", takes an input database [-idb] and an output path [-op]\n" +
@@ -43,6 +45,7 @@ public class Main {
                                 "\"NeighbourhoodAnalysis\", takes in a measured input database [-idb], an output path [-op], the depth of the traversal [-d], the experiment name of interest [-en], and the file containing the pre-calculated empirical distribution per neighbourhood [-idf]\n"+
                                 "\"ShortestPath\", takes in a measured input database [-idb], an output path [-op], a starting node id [-sid], a ending node id [-eid], and the weight type to be traversed [-ew] (can be either \"Abundance\" (a) or \"Support\" (s))\n"+
                                 "\"MinimalConnectionNetwork\", takes in a measured input database [-idb], an output path [-op], and the experiment name of interest [-en]\n"+
+                                "\"RemoveScores\", takes in a measured input database [-idb], and the mapped experiment name [-en]\n"+
                                 "\"TraversalAnalysis\", takes in a measured input database [-idb], an output path [-op], a UniProt ID or database ID to look downstream of [-p], the direction of the traversal [-dir], and the experiment name of interest [-en]\n" +
                                 "\nqPhosDs"+
                                 "\nqPhosMapALL\t [idb][op][idf]" +
@@ -57,6 +60,7 @@ public class Main {
                 .type(String.class)
                 .choices("CreateDB", //done
                         "PrintDatabase", //done
+                        "PrintSpecies", //done
                         "WriteAllUIDs", //done
                         "WritePhos", //done
                         "WriteDBtoSIF", //done
@@ -67,10 +71,9 @@ public class Main {
                         "TraversalAnalysis", //done
                         "ShortestPath", //done
                         "MinimalConnectionNetwork", //done
-                        "ResetScores",
-                        "GetSpecies",
+                        "RemoveScores", //done
                         "AmountWithLabel", //done
-                        "PrintAllProperties",
+                        "PrintProperties",
                         "qPhosDs",
                         "qPhosMap",
                         "qPhosNbhd",
@@ -205,6 +208,24 @@ public class Main {
                     edb.printLabelNumber(label);
                 }
             }
+            else if(mode.equalsIgnoreCase("PrintSpecies")) {
+                if (ns.getAttrs().get("input_db") == null) {
+                    throw new NullPointerException("Missing the input: database directory");
+                }else{
+                    File input_db = new File(ns.get("input_db").toString());
+                    EmbeddedNeo4jDatabase edb = new EmbeddedNeo4jDatabase(input_db);
+                    edb.printSpecies();
+                }
+            }
+            else if(mode.equalsIgnoreCase("PrintProperties")) {
+                if (ns.getAttrs().get("input_db") == null) {
+                    throw new NullPointerException("Missing the input: database directory");
+                }else{
+                    File input_db = new File(ns.get("input_db").toString());
+                    EmbeddedNeo4jDatabase edb = new EmbeddedNeo4jDatabase(input_db);
+                    edb.printProperties();
+                }
+            }
             else if(mode.equalsIgnoreCase("PrintDatabase")) {
                 if (ns.getAttrs().get("input_db") == null) {
                     throw new NullPointerException("Missing the input: database directory");
@@ -322,6 +343,20 @@ public class Main {
 
                     MeasuredDatabase mdb = new MeasuredDatabase(input_db, output_path);
                     mdb.binomialNeighbourhood(d);
+                }
+            }
+            else if(mode.equalsIgnoreCase("RemoveScores")) {
+                if (ns.getAttrs().get("input_db") == null) {
+                    throw new NullPointerException("Missing the input: database directory");
+                } else if(ns.getAttrs().get("experiment") == null) {
+                    throw new NullPointerException("Missing experiment parameter for network traversal");
+                }
+                else{
+                    File input_db = new File(ns.get("input_db").toString());
+                    String expt = ns.getString("experiment");
+
+                    MeasuredDatabase mdb = new MeasuredDatabase(input_db);
+                    mdb.resetScores(expt);
                 }
             }
             else if(mode.equalsIgnoreCase("NeighbourhoodAnalysis")) {
