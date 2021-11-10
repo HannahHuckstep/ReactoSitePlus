@@ -880,10 +880,10 @@ class MeasuredDatabaseTest {
     }
 
     @Test
-    void nbhdStats(){
+    void nbhd_ED_human(){
         File tempOutputDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/");
         File tempGraphDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/GRAPH/");
-        File qPhosFile = new File("");
+        File qPhosFile = new File("test/insulinNtwk_test_qPhos_data.txt");
 
         // in case graph wasn't already deleted
         InputStream sysInBackup = System.in; // backup System.in to restore it later
@@ -894,24 +894,10 @@ class MeasuredDatabaseTest {
         dbf.createDBfromOWL();
         System.setIn(sysInBackup);// reset System.in to its original
 
-
-        EmbeddedNeo4jDatabase edb = new EmbeddedNeo4jDatabase(tempGraphDir, tempOutputDir);
-        try {
-
-            InputStream sysInBackup2 = System.in; // backup System.in to restore it later
-            ByteArrayInputStream in2 = new ByteArrayInputStream("UniProtID mod_Seq pVal expr".getBytes());
-            System.setIn(in2);
-            edb.mapMQPhosphopeps(TEST_DATA_FILE, "HighestSupport"); //TODO change to actual input file
-            System.setIn(sysInBackup2);// reset System.in to its original
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        // generate nbhds and map subsets and gen ED
         MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir, tempOutputDir);
-
         try {
-            mdb.empiricalNullDistribution(qPhosFile, 4,10, 10);
+            mdb.empiricalNullDistribution(qPhosFile, 2,4, 3);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -961,14 +947,13 @@ class MeasuredDatabaseTest {
 
     @Test
     void MCNTest(){
-
     }
 
     @Test
     void myDist(){
         File tempOutputDir = new File("/Users/huckstep.h/Documents/neo4j/PhlashyName_home/liveDemo/");
         File tempGraphDir = new File( "/Users/huckstep.h/Documents/neo4j/PhlashyName_home/liveDemo/HUMAN/");
-        File miniDataFile = new File( "/Users/huckstep.h/Documents/neo4j/Project2/empiricalDist/qPhos_all_data_smaller.txt");
+        File miniDataFile = new File( "/Users/huckstep.h/Documents/neo4j/Project2/empiricalDist/qPhos_all_data_smaller.txt"); //TODO move to test file
 
         MeasuredDatabase mdb = new MeasuredDatabase(tempGraphDir, tempOutputDir);
         try {

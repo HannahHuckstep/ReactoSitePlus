@@ -1,0 +1,44 @@
+Node_ID	Database_ID	Display_Name	Type	Database_Link	Location	UniProt_ID	Status	Kinase	Transcription_Factor	UniProt_Gene_Name	
+1	Protein23216	AGPAT1	Protein	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-61803.1	cytosol					AGPAT1	
+3	Protein19285	phospho-p-2-INSR(28-758)	Protein	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-MMU-74668.1	plasma membrane			KINASE		INSR	
+7	Protein19289	4xHC-INS(90-110)	Protein	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-MMU-74672-2.1	extracellular region						
+9	Protein19288	4xHC-INS(90-110)	Protein	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-MMU-74672.1	extracellular region					INSL3	
+12	Protein19287	Homologues of 4xHC-INS(90-110)	Protein	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-MMU-74672-3.1	extracellular region	U3BNT9, P51460				INSL3	
+13	Protein19286	INSR(763-1382)	Protein	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-MMU-74669.1	plasma membrane			KINASE		INSR	
+14	Protein19292	2xHC-INS(25-54)	Protein	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-MMU-74673-2.1	extracellular region						
+15	Protein19291	2xHC-INS(25-54)	Protein	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-MMU-74673.1	extracellular region					INSL3	
+16	Protein19290	Homologues of 2xHC-INS(25-54)	Protein	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-MMU-74673-3.1	extracellular region	U3BNT9, P51460				INSL3	
+17	Protein19293	phospho-p-3-INSR(400-1382)	Protein	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-MMU-74670.1	plasma membrane			KINASE		INSR	
+21	Complex5367	Insulin	Complex	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-MMU-74674.1	extracellular region	U3BNT9, P51460					
+22	Complex5366	Insulin receptor	Complex	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-MMU-74675.1	plasma membrane	P06213					
+23	Complex5368	Insulin:Insulin receptor	Complex	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-MMU-74703.1	plasma membrane	U3BNT9, P51460, P06213					
+25	SmallMolecule2	ATP	SmallMolecule	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-ALL-113592.2	cytosol						
+26	Complex5369	Insulin:p-6Y-Insulin receptor	Complex	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-MMU-74678.1	plasma membrane	U3BNT9, P51460, P06213					
+27	SmallMolecule3	ADP	SmallMolecule	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-ALL-29370.2	cytosol						
+30	Protein23659	MLX	Protein	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-163695.1	cytosol						
+32	Protein23650	MLXIPL	Protein	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-163683.1	cytosol				TRANSCRIPTION_FACTOR	MLXIPL	
+34	Complex10685	ChREBP:MLX	Complex	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-163700.1	cytosol	Q9NP71, Q9UH92-2					
+41	Protein329	P25799	Protein	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-MMU-177655.1	nucleoplasm					EDA	
+46	Complex5370	p-6Y-insulin receptor	Complex	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-MMU-74671.1	plasma membrane	P06213					
+20	BiochemicalReaction4767	[Insulin binds the insulin receptor]	BiochemicalReaction	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-MMU-74716.1							
+24	BiochemicalReaction4768	[Autophosphorylation of insulin receptor]	BiochemicalReaction	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-MMU-74715.1							
+28	Catalysis2766	Catalysis	Catalysis								
+29	BiochemicalReaction9469	[Formation of ChREBP:MLX heterodimer]	BiochemicalReaction	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-163666.2							
+44	TemplateReaction14	[Transcriptional activation of GP-acyl transferase gene by ChREBP:MLX]	TemplateReaction	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-163748.4							
+45	TemplateReactionRegulation9	NA	TemplateReactionRegulation	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-164416.1							
+2	Q99943	Q99943	ProteinID	https://www.uniprot.org/uniprot/Q99943		Q99943	Current			AGPAT1	
+4	P06213	P06213	ProteinID	https://www.uniprot.org/uniprot/P06213		P06213	Current			INSR	
+8	U3BNT9	U3BNT9	ProteinID			U3BNT9	Deleted?				
+10	P51460	P51460	ProteinID	https://www.uniprot.org/uniprot/P51460		P51460	Current			INSL3	
+31	Q9UH92-2	Q9UH92-2	ProteinID	https://www.uniprot.org/uniprot/Q9UH92-2		Q9UH92-2	Current				
+33	Q9NP71	Q9NP71	ProteinID	https://www.uniprot.org/uniprot/Q9NP71		Q9NP71	Current			MLXIPL	
+42	Q92838	Q92838	ProteinID	https://www.uniprot.org/uniprot/Q92838		Q92838	Updated			EDA	
+5	Protein19285_p-S_400	p-S_400	p_S		400						
+6	Protein19285_p-S_407	p-S_407	p_S		407						
+11	Protein19288_p-Y_1360	p-Y_1360	p_Y		1360						
+18	Protein19293_p-S_400	p-S_400	p_S		400						
+19	Protein19293_p-Y_992	p-Y_992	p_Y		992						
+40	Protein19293_p-S_407	p-S_407	p_S		407						
+43	Protein329_[ubiquitinylated]	[ubiquitinylated]_161	[ubiquitinylated]		161						
+35	R-HSA-5660489	Hannah's Insulin Test Pathway	Pathway	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-5660489.1							
+36	R-HSA-163765	ChREBP activates metabolic gene expression	Pathway	 http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-163765.2							

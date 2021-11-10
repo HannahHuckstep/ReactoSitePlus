@@ -1,10 +1,13 @@
 package org.wehi.hucksteph;
 
 
+import org.apache.commons.lang.time.StopWatch;
 import org.apache.commons.math3.stat.inference.AlternativeHypothesis;
 import org.apache.commons.math3.stat.inference.BinomialTest;
 import org.apache.commons.math3.stat.inference.ChiSquareTest;
+import org.biopax.paxtools.model.level2.physicalEntity;
 import org.biopax.paxtools.model.level2.protein;
+import org.biopax.paxtools.model.level3.PhysicalEntity;
 import org.neo4j.cypher.internal.frontend.v2_3.ast.functions.Str;
 import org.neo4j.cypher.internal.frontend.v3_4.phases.Do;
 import org.neo4j.graphalgo.GraphAlgoFactory;
@@ -565,19 +568,19 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
      * @return
      */
     HashSet<Node> neighbourTraversal(Node node, Integer depth, GraphDatabaseService graphDb){
-        Integer currdepth = 0;
+        //Integer currdepth = 0;
 
-        String output = "starting at: " + node.getId() + "\n";
+        //String output = "starting at: " + node.getId() + "\n";
         Traverser nodeTraverser = getNeighbourhoodBFS(node, depth, graphDb);
         HashSet<Node> nbhd = new HashSet<>();
         for (Path nodePath : nodeTraverser) {
-            output += "at depth" + nodePath.length() + "=>" +nodePath.endNode().getLabels()+" " + nodePath.endNode().getId() + "\n";
-            currdepth++;
+            //output += "at depth" + nodePath.length() + "=>" +nodePath.endNode().getLabels()+" " + nodePath.endNode().getId() + "\n";
+            //currdepth++;
             //if(nodePath.endNode().hasLabel(Label.label("Protein"))){
             nbhd.add(nodePath.endNode());
             //}
         }
-        output += "Number of nodes found: " + currdepth + "\n";
+        //output += "Number of nodes found: " + currdepth + "\n";
         //System.out.println(output);
 
         return nbhd;
@@ -1747,10 +1750,31 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
         HashMap<Long, String> nbhd2UID = new HashMap<>();
         HashMap<Long, String> nbhd2DispName = new HashMap<>();
 
+        // generating neighbourhoods
+        HashMap<Long, HashSet<Node>> allNbhds = new HashMap<>();
+        try (Transaction tx = graphDb.beginTx()) {
+            //gen nbhds once
+            ResourceIterator<Node> allPeNodes1 = graphDb.findNodes(Label.label(LabelTypes.PHYSICAL_ENTITY.toString()));
+            for (ResourceIterator<Node> it = allPeNodes1; it.hasNext(); ) {
+                Node physicalEntity = it.next();
+
+                if (physicalEntity.hasLabel(Label.label("Protein")) | physicalEntity.hasLabel(Label.label("Complex"))) {
+                    HashSet<Node> nbhd = neighbourTraversal(physicalEntity, depth, graphDb);
+                    if (nbhd.size() > 1) {
+                        allNbhds.put(physicalEntity.getId(), nbhd);
+                    }
+                }
+            }
+            tx.success();
+        }
+
+
 
 
         for (int j = 1; j < (repetitionNumber+1); j ++){
             System.out.println("\rCurrently performing replicate: " + j);
+            //StopWatch stopwatch = new StopWatch();
+            //stopwatch.start();
 
             //sample strategy
             // pick rand uids
@@ -1763,11 +1787,14 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
             Random random = new Random();
             HashSet<String> UIDs = new HashSet();
 
+            // picking rand UIDs
             while(UIDs.size() < subsetSize){
                 int index = random.nextInt(ID2LRP.keySet().size());
                 ArrayList<String> uidSet = new ArrayList<>(ID2LRP.keySet());
                 UIDs.add(uidSet.get(index));
             }
+
+            //System.out.println(UIDs);
 
             HashMap<String, HashSet<String>> ID2LRP_subset = new HashMap<>();
             HashMap<String, HashSet<String>> ID2TopMods_subset = new HashMap<>();
@@ -1776,7 +1803,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
             HashMap<String, String> ID2End_subset = new HashMap<>();
 
             // pick rand num of peps from uid
-            // no pick an index from a array with a distribution
+            // now pick an index from a array with a distribution
             ArrayList<Long> distributionPercent = new ArrayList<>();
             ArrayList<Integer> distribution = new ArrayList<>();
             distributionPercent.add(Math.round(subsetSize*0.4));
@@ -1819,6 +1846,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
             for(String randUID: UIDs){
                 HashSet<String> pepIDs_subset = new HashSet<>();
                 ArrayList<String> peptideIDs = new ArrayList<>(ID2LRP.get(randUID));
+
                 int distIndex = random.nextInt(distribution.size());
                 Integer numPeps = distribution.get(distIndex);
 
@@ -1843,8 +1871,8 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                     ID2Start_subset.put(pepID, ID2Start.get(pepID));
                     ID2End_subset.put(pepID, ID2End.get(pepID));
                 }
-
             }
+
 
             // map to db
             mapToDB(graphDb,
@@ -1859,173 +1887,182 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // generate neighbourhoods
 
+
+
             try (Transaction tx = graphDb.beginTx()) {
 
+                System.out.println("\tCounting nbhd stats");
 
-                // get the number of measured proteins and complexes
-                int dbMeasured = 0;
-                double numInDb = 0;
-                ResourceIterator<Node> allProtandCmplxs = graphDb.findNodes(Label.label(LabelTypes.PHYSICAL_ENTITY.toString()));
-                for (ResourceIterator<Node> it = allProtandCmplxs; it.hasNext(); ) {
-                    Node pe = it.next();
-                    if(pe.hasProperty(PropertyType.SUPPORT_SCORE.toString())){
-                        dbMeasured ++;
-                    }
-                    numInDb ++;
-                }
+                for (long id: allNbhds.keySet()) {
 
-                ResourceIterator<Node> allPeNodes = graphDb.findNodes(Label.label(LabelTypes.PHYSICAL_ENTITY.toString()));
-                for (ResourceIterator<Node> it = allPeNodes; it.hasNext(); ) {
-                    Node physicalEntity = it.next();
+                    HashSet<Node> nbhd = allNbhds.get(id);
 
-                    // if pe is measured - gen nbhd
                     ArrayList<Double> nbhdSScores = new ArrayList<>();
                     Integer nbhdSizeInt = 0;
                     Integer nbhdMeasured = 0;
                     Integer numIntegrated = 0;
                     HashSet<String> nbhdUids = new HashSet<>();
                     HashSet<String> numUIDsMeasured = new HashSet<>();
-
-                    if(physicalEntity.hasLabel(Label.label("Protein")) | physicalEntity.hasLabel(Label.label("Complex"))) {
-                        HashSet<Node> nbhd = neighbourTraversal(physicalEntity, depth, graphDb);
-
-                        // count the total neighbourhood size
-                        // count number of measured things
-                        for(Node node:nbhd){
-                            if(node.hasLabel(Label.label("Protein")) | node.hasLabel(Label.label("Complex"))){
-                                nbhdSizeInt ++;
-                                //count integrated
-                                if(node.hasProperty(PropertyType.INTEGRATED.toString())){
-                                    numIntegrated++;
-                                }
-                            }
-
-                            // get UID's from proteins and complexes in the network & count the # measured
-                            if(node.hasLabel(Label.label("Protein"))){
-                                Iterable<Relationship> uidRels = node.getRelationships(RelTypes.ID_BELONGS_TO, Direction.INCOMING);
-                                for(Relationship uidRel: uidRels){
-                                    nbhdUids.add(uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString());
-                                    if(uidRel.getStartNode().hasProperty(PropertyType.MAPPED.toString())){
-                                        numUIDsMeasured.add(uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString());
-                                    }
-                                }
-                            }
-                            if( node.hasLabel(Label.label("Complex"))){
-                                String cplxUIDs = node.getProperty(PropertyType.UNIPROT_ID.toString()).toString();
-                                String[] split = cplxUIDs.split(",\\s");
-                                for (String uid: split) {
-                                    Pattern p = Pattern.compile(UID_PATTERN);
-                                    Matcher m = p.matcher(uid);
-                                    if (m.find()) {
-                                        nbhdUids.add(m.group(0));
-                                    }
-                                }
-                                if(node.hasProperty(PropertyType.MAPPED.toString())){
-                                    String mappedUIDs = node.getProperty(PropertyType.MAPPED.toString()).toString();
-                                    String[] split1 = mappedUIDs.split(",\\s");
-                                    for (String uid: split1){
-                                        numUIDsMeasured.add(uid);
-                                    }
-                                }
-                            }
-
-                            // count measured entities
-                            if (node.hasProperty(PropertyType.SUPPORT_SCORE.toString())){
-                                if(Double.parseDouble(node.getProperty(PropertyType.SUPPORT_SCORE.toString()).toString()) > 0){
-                                    nbhdMeasured ++;
-                                }
-                                nbhdSScores.add(Double.parseDouble(node.getProperty(PropertyType.SUPPORT_SCORE.toString()).toString()));
+                    // count the total neighbourhood size
+                    // count number of measured things
+                    for (Node node : nbhd) {
+                        //System.out.println(node.getAllProperties());
+                        if (node.hasLabel(Label.label("Protein")) | node.hasLabel(Label.label("Complex"))) {
+                            nbhdSizeInt++;
+                            //count integrated
+                            if (node.hasProperty(PropertyType.INTEGRATED.toString())) {
+                                numIntegrated++;
                             }
                         }
 
-                        // add # measured per nbhd to hashmap
-                        if(numMapped.containsKey(physicalEntity.getId())){
-                            ArrayList<Integer> integers = numMapped.get(physicalEntity.getId());
+                        // get UID's from proteins and complexes in the network & count the # measured
+                        if (node.hasLabel(Label.label("Protein"))) {
+                            Iterable<Relationship> uidRels = node.getRelationships(RelTypes.ID_BELONGS_TO, Direction.INCOMING);
+                            for (Relationship uidRel : uidRels) {
+                                nbhdUids.add(uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString());
+                                if (uidRel.getStartNode().hasProperty(PropertyType.MAPPED.toString())) {
+                                    numUIDsMeasured.add(uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString());
+                                }
+                            }
+                        }
+                        if (node.hasLabel(Label.label("Complex"))) {
+                            String cplxUIDs = node.getProperty(PropertyType.UNIPROT_ID.toString()).toString();
+                            String[] split = cplxUIDs.split(",\\s");
+                            for (String uid : split) {
+                                Pattern p = Pattern.compile(UID_PATTERN);
+                                Matcher m = p.matcher(uid);
+                                if (m.find()) {
+                                    nbhdUids.add(m.group(0));
+                                }
+                            }
+                            if (node.hasProperty(PropertyType.MAPPED.toString())) {
+                                String mappedUIDs = node.getProperty(PropertyType.MAPPED.toString()).toString();
+                                String[] split1 = mappedUIDs.split(",\\s");
+                                for (String uid : split1) {
+                                    numUIDsMeasured.add(uid);
+                                }
+                            }
+                        }
+
+                        // count measured entities
+                        if (node.hasProperty(PropertyType.SUPPORT_SCORE.toString())) {
+                            if (Double.parseDouble(node.getProperty(PropertyType.SUPPORT_SCORE.toString()).toString()) > 0) {
+                                nbhdMeasured++;
+                            }
+                            nbhdSScores.add(Double.parseDouble(node.getProperty(PropertyType.SUPPORT_SCORE.toString()).toString()));
+                        }
+                    }
+
+                    // add # measured per nbhd to hashmap
+                    if(nbhdMeasured != 0){
+                        if (numMapped.containsKey(id)) {
+                            ArrayList<Integer> integers = numMapped.get(id);
                             integers.add(nbhdMeasured);
-                            numMapped.put(physicalEntity.getId(), integers);
-                        }else {
+                            numMapped.put(id, integers);
+                        } else {
                             ArrayList<Integer> integers = new ArrayList<>();
                             integers.add(nbhdMeasured);
-                            numMapped.put(physicalEntity.getId(), integers);
+                            numMapped.put(id, integers);
                         }
+                    }
 
-                        // add # measured per nbhd to hashmap
-                        if(numUIDsMapped.containsKey(physicalEntity.getId())){
-                            ArrayList<Integer> integers = numUIDsMapped.get(physicalEntity.getId());
+                    // add # measured UIDs per nbhd to hashmap
+                    if(numUIDsMeasured.size() != 0){
+                        if (numUIDsMapped.containsKey(id)) {
+                            ArrayList<Integer> integers = numUIDsMapped.get(id);
                             integers.add(numUIDsMeasured.size());
-                            numUIDsMapped.put(physicalEntity.getId(), integers);
-                        }else {
+                            numUIDsMapped.put(id, integers);
+                        } else {
                             ArrayList<Integer> integers = new ArrayList<>();
                             integers.add(numUIDsMeasured.size());
-                            numUIDsMapped.put(physicalEntity.getId(), integers);
+                            numUIDsMapped.put(id, integers);
                         }
+                    }
 
-                        nbhdSize.put(physicalEntity.getId(), nbhdSizeInt);
+                    nbhdSize.put(id, nbhdSizeInt);
 
-                        nbhdIntegrated.put(physicalEntity.getId(), numIntegrated);
+                    nbhdIntegrated.put(id, numIntegrated);
 
-                        numUIDs.put(physicalEntity.getId(), nbhdUids.size());
+                    numUIDs.put(id, nbhdUids.size());
 
 
-                        // AVG & SUM & STDDEV
-                        Double ssAvg = 0.0;
-                        Double ssSum = 0.0;
-                        for(Integer i = 0; i < nbhdSScores.size(); i++){
-                            if(nbhdSScores.get(i) >= 0){
-                                ssAvg += nbhdSScores.get(i);
-                                ssSum += nbhdSScores.get(i);
-                            }
+                    // AVG & SUM & STDDEV
+                    Double ssAvg = 0.0;
+                    Double ssSum = 0.0;
+                    for (Integer i = 0; i < nbhdSScores.size(); i++) {
+                        if (nbhdSScores.get(i) >= 0) {
+                            ssAvg += nbhdSScores.get(i);
+                            ssSum += nbhdSScores.get(i);
                         }
-                        if(!ssSum.equals(0.0)){
-                            ssAvg = ssAvg/nbhdSScores.size();
-                        }
+                    }
+                    if (!ssSum.equals(0.0)) {
+                        ssAvg = ssAvg / nbhdSScores.size();
+                    }
 
-                        // add avg SScore per nbhd to hashmap
-                        ssAvg = (Math.round(ssAvg*100.00))/100.00;
-                        if(avgSScore.containsKey(physicalEntity.getId())){
-                            ArrayList<Double> doubles = avgSScore.get(physicalEntity.getId());
+                    // add avg SScore per nbhd to hashmap
+                    ssAvg = (Math.round(ssAvg * 100.00)) / 100.00;
+                    if(ssAvg != 0.0){
+                        if (avgSScore.containsKey(id)) {
+                            ArrayList<Double> doubles = avgSScore.get(id);
                             doubles.add(ssAvg);
-                            avgSScore.put(physicalEntity.getId(), doubles);
-                        }else {
+                            avgSScore.put(id, doubles);
+                        } else {
                             ArrayList<Double> doubles = new ArrayList<>();
                             doubles.add(ssAvg);
-                            avgSScore.put(physicalEntity.getId(), doubles);
+                            avgSScore.put(id, doubles);
                         }
+                    }
 
-                        ssSum = (Math.round(ssSum*100.00))/100.00;
-                        if(sumSScore.containsKey(physicalEntity.getId())){
-                            ArrayList<Double> doubles = sumSScore.get(physicalEntity.getId());
+                    ssSum = (Math.round(ssSum * 100.00)) / 100.00;
+                    if(ssSum != 0.0){
+                        if (sumSScore.containsKey(id)) {
+                            ArrayList<Double> doubles = sumSScore.get(id);
                             doubles.add(ssSum);
-                            sumSScore.put(physicalEntity.getId(), doubles);
-                        }else {
+                            sumSScore.put(id, doubles);
+                        } else {
                             ArrayList<Double> doubles = new ArrayList<>();
                             doubles.add(ssSum);
-                            sumSScore.put(physicalEntity.getId(), doubles);
+                            sumSScore.put(id, doubles);
                         }
+                    }
 
-                        ////////////// gathering outputs
-                        String uid = "";
+                    ////////////// gathering outputs
+                    String uid = "";
 
-                        if(physicalEntity.hasProperty(PropertyType.SCORED_BY.toString())){
-                            uid = physicalEntity.getProperty(PropertyType.SCORED_BY.toString()).toString();
-                        } else if (physicalEntity.hasProperty(PropertyType.UNIPROT_ID.toString())){
-                            uid = physicalEntity.getProperty(PropertyType.UNIPROT_ID.toString()).toString();
-                        }else{
-                            Iterable<Relationship> uidRels = physicalEntity.getRelationships(RelTypes.ID_BELONGS_TO, Direction.INCOMING);
-                            if(getLength(uidRels) == 1){
-                                for(Relationship uidRel: uidRels){
-                                    uid = uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString();
-                                }
-                            }else{
-                                for(Relationship uidRel: uidRels){
-                                    uid = uid + uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString() + ", ";
-                                }
+                    if (graphDb.getNodeById(id).hasProperty(PropertyType.SCORED_BY.toString())) {
+                        uid = graphDb.getNodeById(id).getProperty(PropertyType.SCORED_BY.toString()).toString();
+                    } else if (graphDb.getNodeById(id).hasProperty(PropertyType.UNIPROT_ID.toString())) {
+                        uid = graphDb.getNodeById(id).getProperty(PropertyType.UNIPROT_ID.toString()).toString();
+                    } else {
+                        Iterable<Relationship> uidRels = graphDb.getNodeById(id).getRelationships(RelTypes.ID_BELONGS_TO, Direction.INCOMING);
+                        if (getLength(uidRels) == 1) {
+                            for (Relationship uidRel : uidRels) {
+                                uid = uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString();
+                            }
+                        } else {
+                            for (Relationship uidRel : uidRels) {
+                                uid = uid + uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString() + ", ";
                             }
                         }
-                        nbhd2UID.put(physicalEntity.getId(), uid);
-                        nbhd2DispName.put(physicalEntity.getId(), physicalEntity.getProperty(PropertyType.DISPLAY_NAME.toString()).toString());
+                    }
+                    nbhd2UID.put(id, uid);
+                    nbhd2DispName.put(id, graphDb.getNodeById(id).getProperty(PropertyType.DISPLAY_NAME.toString()).toString());
+
+                }
+
+
+
+                /*
+                System.out.println("DO THE NODE PROPERTIES CHANGE INSIDE THE FOR LOOP");
+                for(long id: allNbhds.keySet()){
+                    System.out.println("ROOT ID: " + id);
+                    for (Node node : allNbhds.get(id)) {
+                        System.out.println(node.getAllProperties());
                     }
                 }
+                 */
+
+
 
                 // reset scores
                 ResourceIterator<Node> proteins = graphDb.findNodes(Label.label("Protein"));
@@ -2053,6 +2090,8 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
 
                 tx.success();
             }
+            //System.out.println(stopwatch.toString());
+            //stopwatch.stop();
         }
 
         // get Uniprot accesison, position,  Raw Peptide, log2 ratio

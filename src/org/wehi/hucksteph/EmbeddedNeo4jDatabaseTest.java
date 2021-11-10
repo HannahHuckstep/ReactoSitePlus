@@ -1228,6 +1228,29 @@ class EmbeddedNeo4jDatabaseTest {
 
             System.out.println(hs);
         }
+    }
+
+    @Test
+    void test2(){ // just printing the db
+        File tempOutputDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/");
+        File tempGraphDir = new File(DATABASE_ACTUAL_PATH+ "/toBeDeleted/GRAPH/");
+
+        // in case graph wasn't already deleted
+        InputStream sysInBackup = System.in; // backup System.in to restore it later
+        ByteArrayInputStream in = new ByteArrayInputStream("y".getBytes());
+        System.setIn(in);
+        // Make a new graph
+        DatabaseFactory dbf = new DatabaseFactory(TEST_OWL_FILE, tempGraphDir, true, "human");
+        dbf.createDBfromOWL();
+        System.setIn(sysInBackup);// reset System.in to its original
+
+        // Map data onto it
+        EmbeddedNeo4jDatabase edb = new EmbeddedNeo4jDatabase(tempGraphDir, tempOutputDir);
+        try {
+            edb.writeSIF();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
 
