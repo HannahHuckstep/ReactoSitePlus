@@ -1,15 +1,8 @@
 package org.wehi.hucksteph;
 
 
-import org.apache.commons.lang.time.StopWatch;
 import org.apache.commons.math3.stat.inference.AlternativeHypothesis;
 import org.apache.commons.math3.stat.inference.BinomialTest;
-import org.apache.commons.math3.stat.inference.ChiSquareTest;
-import org.biopax.paxtools.model.level2.physicalEntity;
-import org.biopax.paxtools.model.level2.protein;
-import org.biopax.paxtools.model.level3.PhysicalEntity;
-import org.neo4j.cypher.internal.frontend.v2_3.ast.functions.Str;
-import org.neo4j.cypher.internal.frontend.v3_4.phases.Do;
 import org.neo4j.graphalgo.GraphAlgoFactory;
 import org.neo4j.graphalgo.PathFinder;
 import org.neo4j.graphalgo.WeightedPath;
@@ -19,12 +12,10 @@ import org.neo4j.graphdb.traversal.*;
 import org.neo4j.unsafe.impl.batchimport.input.InputException;
 
 import java.io.*;
-import java.rmi.server.UID;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.lang.Math.round;
 
 public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
 
@@ -1733,8 +1724,35 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
             }
         }
 
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // generating neighbourhoods
 
+        // for printing
+        HashMap<Long, Integer> nbhdID2vectorIndex = new HashMap<Long, Integer>();
+        Integer largestNBHD = 0;
+        Integer nbhdCount = 0;
+        HashMap<Long, HashSet<Node>> allNbhds = new HashMap<>();
+        try (Transaction tx = graphDb.beginTx()) {
+            //gen nbhds once
+            ResourceIterator<Node> allPeNodes1 = graphDb.findNodes(Label.label(LabelTypes.PHYSICAL_ENTITY.toString()));
+            for (ResourceIterator<Node> it = allPeNodes1; it.hasNext(); ) {
+                Node physicalEntity = it.next();
+                if (physicalEntity.hasLabel(Label.label("Protein")) | physicalEntity.hasLabel(Label.label("Complex"))) {
+                    HashSet<Node> nbhd = neighbourTraversal(physicalEntity, depth, graphDb);
+                    if (nbhd.size() > 1) {
+                        allNbhds.put(physicalEntity.getId(), nbhd);
 
+                        nbhdCount ++;
+                        nbhdID2vectorIndex.put( physicalEntity.getId(), nbhdCount);
+
+                        if(nbhd.size() > largestNBHD){
+                            largestNBHD = nbhd.size();
+                        }
+                    }
+                }
+            }
+            tx.success();
+        }
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         /////////  subsets & mapping
@@ -1749,26 +1767,6 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
         HashMap<Long,  ArrayList<Integer>> numUIDsMapped = new HashMap<>();
         HashMap<Long, String> nbhd2UID = new HashMap<>();
         HashMap<Long, String> nbhd2DispName = new HashMap<>();
-
-        // generating neighbourhoods
-        HashMap<Long, HashSet<Node>> allNbhds = new HashMap<>();
-        try (Transaction tx = graphDb.beginTx()) {
-            //gen nbhds once
-            ResourceIterator<Node> allPeNodes1 = graphDb.findNodes(Label.label(LabelTypes.PHYSICAL_ENTITY.toString()));
-            for (ResourceIterator<Node> it = allPeNodes1; it.hasNext(); ) {
-                Node physicalEntity = it.next();
-
-                if (physicalEntity.hasLabel(Label.label("Protein")) | physicalEntity.hasLabel(Label.label("Complex"))) {
-                    HashSet<Node> nbhd = neighbourTraversal(physicalEntity, depth, graphDb);
-                    if (nbhd.size() > 1) {
-                        allNbhds.put(physicalEntity.getId(), nbhd);
-                    }
-                }
-            }
-            tx.success();
-        }
-
-
 
 
         for (int j = 1; j < (repetitionNumber+1); j ++){
@@ -1885,7 +1883,10 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
 
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // generate neighbourhoods
+            // count neighbourhoods
+            // create matrix
+            int[][] numEntitiesMeasured = new int[largestNBHD][nbhdID2vectorIndex.size()];     // 2D integer array with 4 rows
+            System.out.println(nbhdID2vectorIndex);
 
 
 
@@ -1965,6 +1966,14 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                             numMapped.put(id, integers);
                         }
                     }
+
+                    System.out.println(id);
+                    System.out.println(nbhdMeasured);
+                    Integer nbhdIndex = nbhdID2vectorIndex.get(id);
+                    numEntitiesMeasured[nbhdIndex][nbhdMeasured] = numEntitiesMeasured[nbhdIndex][nbhdMeasured] + 1;
+                    System.out.println(Arrays.deepToString(numEntitiesMeasured));
+
+
 
                     // add # measured UIDs per nbhd to hashmap
                     if(numUIDsMeasured.size() != 0){
