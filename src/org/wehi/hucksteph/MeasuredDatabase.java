@@ -1730,7 +1730,8 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
         // for printing
         HashMap<Long, Integer> nbhdID2vectorIndex = new HashMap<Long, Integer>();
         Integer largestNBHD = 0;
-        Integer nbhdCount = 0;
+        Integer largestNumUIDsMeasured = 0;
+        Integer nbhdCount = -1;
         HashMap<Long, HashSet<Node>> allNbhds = new HashMap<>();
         try (Transaction tx = graphDb.beginTx()) {
             //gen nbhds once
@@ -1745,14 +1746,46 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                         nbhdCount ++;
                         nbhdID2vectorIndex.put( physicalEntity.getId(), nbhdCount);
 
+                        HashSet<String> nbhdUids = new HashSet<>();
+                        for (Node node : nbhd) {
+                            // get UID's from proteins and complexes in the network & count the # measured
+                            if (node.hasLabel(Label.label("Protein"))) {
+                                Iterable<Relationship> uidRels = node.getRelationships(RelTypes.ID_BELONGS_TO, Direction.INCOMING);
+                                for (Relationship uidRel : uidRels) {
+                                    nbhdUids.add(uidRel.getStartNode().getProperty(PropertyType.UNIPROT_ID.toString()).toString());
+                                }
+                            }
+                            if (node.hasLabel(Label.label("Complex"))) {
+                                String cplxUIDs = node.getProperty(PropertyType.UNIPROT_ID.toString()).toString();
+                                String[] split = cplxUIDs.split(",\\s");
+                                for (String uid : split) {
+                                    Pattern p = Pattern.compile(UID_PATTERN);
+                                    Matcher m = p.matcher(uid);
+                                    if (m.find()) {
+                                        nbhdUids.add(m.group(0));
+                                    }
+                                }
+                            }
+                        }
+
+
                         if(nbhd.size() > largestNBHD){
                             largestNBHD = nbhd.size();
+                        }
+
+                        if (nbhdUids.size() > largestNumUIDsMeasured){
+                            largestNumUIDsMeasured = nbhdUids.size();
                         }
                     }
                 }
             }
             tx.success();
         }
+
+        //[rows][cols]
+        int[][] numEntitiesMeasuredMatrix = new int[nbhdID2vectorIndex.size()][largestNBHD];     // 2D integer array
+        int[][] numUIDsMeasuredMatrix = new int[nbhdID2vectorIndex.size()][largestNumUIDsMeasured];     // 2D integer array
+
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         /////////  subsets & mapping
@@ -1885,14 +1918,11 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // count neighbourhoods
             // create matrix
-            int[][] numEntitiesMeasured = new int[largestNBHD][nbhdID2vectorIndex.size()];     // 2D integer array with 4 rows
-            System.out.println(nbhdID2vectorIndex);
-
 
 
             try (Transaction tx = graphDb.beginTx()) {
 
-                System.out.println("\tCounting nbhd stats");
+                //System.out.println("\tCounting nbhd stats");
 
                 for (long id: allNbhds.keySet()) {
 
@@ -1955,7 +1985,7 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                     }
 
                     // add # measured per nbhd to hashmap
-                    if(nbhdMeasured != 0){
+
                         if (numMapped.containsKey(id)) {
                             ArrayList<Integer> integers = numMapped.get(id);
                             integers.add(nbhdMeasured);
@@ -1965,17 +1995,11 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                             integers.add(nbhdMeasured);
                             numMapped.put(id, integers);
                         }
-                    }
-
-                    System.out.println(id);
-                    System.out.println(nbhdMeasured);
-                    Integer nbhdIndex = nbhdID2vectorIndex.get(id);
-                    numEntitiesMeasured[nbhdIndex][nbhdMeasured] = numEntitiesMeasured[nbhdIndex][nbhdMeasured] + 1;
-                    System.out.println(Arrays.deepToString(numEntitiesMeasured));
 
 
 
                     // add # measured UIDs per nbhd to hashmap
+                    /*
                     if(numUIDsMeasured.size() != 0){
                         if (numUIDsMapped.containsKey(id)) {
                             ArrayList<Integer> integers = numUIDsMapped.get(id);
@@ -1987,6 +2011,12 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                             numUIDsMapped.put(id, integers);
                         }
                     }
+                     */
+
+                    //[rows][cols]
+                    Integer nbhdIndex = nbhdID2vectorIndex.get(id);
+                    numEntitiesMeasuredMatrix[nbhdIndex][nbhdMeasured] = numEntitiesMeasuredMatrix[nbhdIndex][nbhdMeasured] + 1;
+                    numUIDsMeasuredMatrix[nbhdIndex][numUIDsMeasured.size()] = numUIDsMeasuredMatrix[nbhdIndex][numUIDsMeasured.size()] + 1;
 
                     nbhdSize.put(id, nbhdSizeInt);
 
@@ -2061,18 +2091,6 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
 
 
 
-                /*
-                System.out.println("DO THE NODE PROPERTIES CHANGE INSIDE THE FOR LOOP");
-                for(long id: allNbhds.keySet()){
-                    System.out.println("ROOT ID: " + id);
-                    for (Node node : allNbhds.get(id)) {
-                        System.out.println(node.getAllProperties());
-                    }
-                }
-                 */
-
-
-
                 // reset scores
                 ResourceIterator<Node> proteins = graphDb.findNodes(Label.label("Protein"));
                 for (ResourceIterator<Node> it = proteins; it.hasNext(); ) {
@@ -2107,12 +2125,11 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
         // clear file if already exits
         FileWriter fstream0 = new FileWriter(outputFile + "/EmpiricalDist.tsv");
         BufferedWriter out0 = new BufferedWriter(fstream0);
-        out0.write("nbhdBaseDBID\tnbhdBaseUID\tnbhdBaseDisplayName\tnumEntities\tNumIntegrated\tnumUIDs\tnumUIDsMapped\tnbhdMeasured\tavgSScore\tsumSScore\n" );
+        out0.write("nbhdBaseDBID\tnbhdBaseUID\tnbhdBaseDisplayName\tnumEntities\tNumIntegrated\tnumUIDs\tavgSScore\tsumSScore\n" );
         out0.close();
-        //Create File to write inputs/Outputs to
+
         FileWriter fstream = new FileWriter(outputFile + "/EmpiricalDist.tsv", true);
         BufferedWriter out = new BufferedWriter(fstream);
-
         for (Long nbhd: numMapped.keySet()) {
             out.write(nbhd +"\t"
                     + nbhd2UID.get(nbhd)
@@ -2120,15 +2137,34 @@ public class MeasuredDatabase extends EmbeddedNeo4jDatabase{
                     +"\t" + nbhdSize.get(nbhd)
                     +"\t" + nbhdIntegrated.get(nbhd)
                     +"\t" + numUIDs.get(nbhd)
-                    +"\t" + numUIDsMapped.get(nbhd)
-                    +"\t" + numMapped.get(nbhd)
+                    //+"\t" + numUIDsMapped.get(nbhd)
+                    //+"\t" + numMapped.get(nbhd)
                     +"\t" + avgSScore.get(nbhd)
                     +"\t" + sumSScore.get(nbhd)
                     +"\n");
 
         }
-
         out.close();
+
+
+        FileWriter fstream1 = new FileWriter(outputFile + "/EmpiricalDist_numEntitesMeasured.tsv");
+        BufferedWriter out1 = new BufferedWriter(fstream1);
+
+        FileWriter fstream2 = new FileWriter(outputFile + "/EmpiricalDist_numUIDsMeasured.tsv");
+        BufferedWriter out2 = new BufferedWriter(fstream2);
+
+        for (int[] x : numEntitiesMeasuredMatrix){
+            out1.write(Arrays.toString(x) + "\n");
+        }
+
+        for (int[] x : numUIDsMeasuredMatrix){
+            out2.write(Arrays.toString(x)+ "\n");
+        }
+
+        out1.close();
+        out2.close();
+
+
         graphDb.shutdown();
     }
 
